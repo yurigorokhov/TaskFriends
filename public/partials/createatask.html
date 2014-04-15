@@ -1,0 +1,37 @@
+<div class="modal-header">
+    <h3>Create a task</h3>
+</div>
+<div class="modal-body">
+  <form class="form-horizontal css-form" role="form" name="form" novalidate>
+      <div class="form-group">
+        <label for="tasktitle" class="col-sm-2 control-label">Title</label>
+        <div class="col-sm-10">
+          <input class="form-control" name="uTitle" id="tasktitle" placeholder="Title" ng-model="task.title" required/>
+          <div ng-show="form.uTitle.$dirty">
+            <span ng-show="form.uTitle.$error.required">You must specify a title</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-2 control-label">Description</label>
+        <div class="col-sm-10">
+          <textarea class="form-control" rows="3" placeholder="Description" ng-model="task.description" name="uDescription" required></textarea>
+          <div ng-show="form.uDescription.$dirty">
+            <span ng-show="form.uDescription.$error.required">You must specify a description</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-2 control-label">Reward</label>
+        <div class="col-sm-10">
+          <select class="form-control" ng-model="task.reward">
+            <option ng-repeat="r in rewards" value="{{r.id}}">{{ r.name }}</option>
+          </select>
+        </div>
+      </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" ng-disabled="form.$invalid" ng-click="create()">Create</button>
+    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+</div>

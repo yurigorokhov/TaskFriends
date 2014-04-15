@@ -1,0 +1,7 @@
+public/js
+public/css
+public/template
+build/
+config/
+node_modules/
+redist/

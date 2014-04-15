@@ -1,0 +1,19 @@
+<accordion close-others="false">
+	<accordion-group ng-repeat="task in tasks">
+		<accordion-heading>
+		  <span class="label label-info pull-left">{{ task.owner }}</span>
+		  <span>{{ task.title }}</span>
+		  <span class="badge pull-right">${{ task.dollarValue }}</span>
+		</accordion-heading>
+		{{ task.body }}
+
+		<h3>Prizes</h3>
+		<ul class="list-group">
+		  <li class="list-group-item" ng-repeat="prize in task.prizes">
+		  	<span class="label label-info pull-left">@{{ prize.user }}</span>
+		  	{{ prize.reward.name }}
+		  	<span class="badge pull-right">${{ prize.reward.dollarValue }}</span>
+		  </li>
+		</ul>
+	</accordion-group>
+</accordion>
