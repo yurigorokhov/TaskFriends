@@ -106,7 +106,7 @@ gulp.task('watch', function() {
     };
 
     // Watch .js files
-    gulp.watch('src/*.js', ['build-scripts']);
-    gulp.watch('css/*.css', ['styles']);
+    gulp.watch('src/**/*.js', ['build-scripts']);
+    gulp.watch('css/**/*.css', ['styles']);
   });
 });

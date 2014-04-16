@@ -1,12 +1,6 @@
 Parse.initialize("TnKwlgf74fHAhpmQKtOLR0OS0exGelFKLC3u88nU", "nWdvt7vCsQxcgflTwtIX9S6bprHWDbdpJqFmFZAo");
 
 //--- Modules ---
-angular.module('iouapi', ['iouapi-rewards', 'iouapi-tasks']).
-  run(function(rewards) {
-
-    // Initialize any modules
-  });
- 
 var iouApp = angular.module('iou', [
   'ngRoute',
   'controllers',
@@ -44,13 +38,8 @@ controllers.controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'it
       reward: null
     };
     $scope.reward = '';
-    $scope.rewards = [];
-    items.getRewards().then(function(r) {
-      $scope.rewards = _(r).values();
-      rewardsById = r;
-    }, function() {
-
-    });
+    rewardsById = items.getRewards();
+    $scope.rewards = _(rewardsById).values();
 	  $scope.create = function () {
       tasks.add($scope.task, rewardsById[$scope.task.reward]).then(
         function() {
@@ -66,11 +55,12 @@ controllers.controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'it
 ]);
 controllers.controller('ExploreCtrl', ['$scope', '$modal', '$q', 'rewards', 'tasks',
   function ($scope, $modal, $q, rewards, tasks) {
+    var rewardsResultById = {};
     $scope.refreshTasks = function() {
       $q.all([tasks.get(), rewards.getById()]).then(
         function(res) {
           var tasksResult = res[0];
-          var rewardsResultById = res[1];
+          rewardsResultById = res[1];
           var tasksWithRewards = _(tasksResult).map(function(t) {
             var newT = t;
             newT.prizes = _(t.prizes).map(function(p) {
@@ -81,7 +71,7 @@ controllers.controller('ExploreCtrl', ['$scope', '$modal', '$q', 'rewards', 'tas
             });
 
             // Total prize worth
-            newT.dollarValue = _(newT.prizes).reduce(function(a, i) { return a + parseInt(i.reward.dollarValue, 10); }, 0);
+            newT.dollarValue = _(newT.prizes).reduce(function(a, i) { return a + i.reward.dollarValue; }, 0);
             return newT;
           });
           $scope.tasks = tasksWithRewards;
@@ -101,7 +91,9 @@ controllers.controller('ExploreCtrl', ['$scope', '$modal', '$q', 'rewards', 'tas
           items: function() {
               return {
                 refresh: $scope.refreshTasks,
-                getRewards: rewards.getById
+                getRewards: function() {
+                  return rewardsResultById;
+                }
               };
 	         }
         }
