@@ -10,13 +10,47 @@ var iouApp = angular.module('iou', [
 //--- Routing ---
 iouApp.config(['$routeProvider',
   function($routeProvider) {
+    authFunc = function(isAuth) {
+      return function($q, $location, user) {
+        var deferred = $q.defer();
+        user.isLoggedIn().then(
+          function() {
+            if(isAuth) {
+              $location.path('/dashboard');
+              deferred.reject();
+            } else {
+              deferred.resolve();
+            }
+        }, function() {
+          if(!isAuth) {
+            $location.path('/login');
+            deferred.reject();
+          } else {
+            deferred.resolve();
+          }
+        });
+        return deferred.promise;
+      };
+    };
     $routeProvider.
-      when('/dashboard', {
+      when('/login', {
+        templateUrl: 'partials/login.html',
+        controller: 'LoginCtrl',
+        resolve: {
+          authenticate: authFunc(true)
+        }
+      }).when('/dashboard', {
         templateUrl: 'partials/dashboard.html',
-        controller: 'DashboardCtrl'
+        controller: 'DashboardCtrl',
+        resolve: {
+          authenticate: authFunc(false)
+        }
       }).when('/explore', {
         templateUrl: 'partials/explore.html',
-        controller: 'ExploreCtrl'
+        controller: 'ExploreCtrl',
+        resolve: {
+          authenticate: authFunc(false)
+        }
       }).otherwise({
         redirectTo: '/dashboard'
       });
@@ -24,9 +58,39 @@ iouApp.config(['$routeProvider',
 
 //--- Controllers ---
 var controllers = angular.module('controllers', ['ui.bootstrap']);
+controllers.controller('ParentCtrl', ['$scope', 'user',
+  function ($scope, user) {
+    $scope.isLoggedIn = false;
+    user.isLoggedIn().then(function() {
+      $scope.isLoggedIn = true;
+    });
+  }
+]);
 controllers.controller('DashboardCtrl', ['$scope',
   function ($scope) {
   	$scope.tasks = dummyTasks;
+  }
+]);
+controllers.controller('LoginCtrl', ['$scope', '$location',
+  function($scope, $location) {
+    $scope.login = function() {
+      Parse.FacebookUtils.logIn(null, {
+      success: function(user) {
+        if (!user.existed()) {
+          console.log("User signed up and logged in through Facebook!");
+        } else {
+          console.log("User logged in through Facebook!");
+        }
+        $scope.$apply(function() {
+          $scope.$parent.isLoggedIn = true;
+          $location.path('/dashboard');
+        });
+      },
+      error: function(user, error) {
+        alert("User cancelled the Facebook login or did not fully authorize.");
+      }
+    });
+    };
   }
 ]);
 controllers.controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'items',

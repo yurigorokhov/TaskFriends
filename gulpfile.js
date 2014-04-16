@@ -97,7 +97,7 @@ gulp.task('watch', function() {
     request.addListener('end', function () {
         file.serve(request, response);
     }).resume();
-  }).listen(8000);
+  }).listen(8080);
 
   // Listen on port 8000
   server.listen(8001, function (err) {
