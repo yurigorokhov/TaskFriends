@@ -4,34 +4,45 @@ Parse.initialize("TnKwlgf74fHAhpmQKtOLR0OS0exGelFKLC3u88nU", "nWdvt7vCsQxcgflTwt
 var iouApp = angular.module('iou', [
   'ngRoute',
   'controllers',
-  'iouapi'
+  'iouapi',
+  'angularSpinner',
+  'blockUI',
 ]);
 
 //--- Routing ---
-iouApp.config(['$routeProvider',
-  function($routeProvider) {
+iouApp.config(['$routeProvider', 'blockUIConfigProvider',
+  function($routeProvider, blockUIConfigProvider) {
+
+    // Block UI
+    blockUIConfigProvider.templateUrl('/partials/spinner.html');
+    blockUIConfigProvider.autoBlock(false);
+
+    // Authentication
     authFunc = function(isAuth) {
       return function($q, $location, user) {
         var deferred = $q.defer();
-        user.isLoggedIn().then(
-          function() {
-            if(isAuth) {
-              $location.path('/dashboard');
-              deferred.reject();
+        user.getCurrent().then(function(currentUser) {
+            if(currentUser === null) {
+              if(!isAuth) {
+                $location.path('/login');
+                deferred.reject();
+              } else {
+                deferred.resolve();
+              }
             } else {
-              deferred.resolve();
+              if(isAuth) {
+                $location.path('/dashboard');
+                deferred.reject();
+              } else {
+                deferred.resolve();
+              }
             }
-        }, function() {
-          if(!isAuth) {
-            $location.path('/login');
-            deferred.reject();
-          } else {
-            deferred.resolve();
-          }
         });
         return deferred.promise;
       };
     };
+
+    // Routing
     $routeProvider.
       when('/login', {
         templateUrl: 'partials/login.html',
@@ -58,12 +69,17 @@ iouApp.config(['$routeProvider',
 
 //--- Controllers ---
 var controllers = angular.module('controllers', ['ui.bootstrap']);
-controllers.controller('ParentCtrl', ['$scope', 'user',
-  function ($scope, user) {
-    $scope.isLoggedIn = false;
-    user.isLoggedIn().then(function() {
-      $scope.isLoggedIn = true;
+controllers.controller('ParentCtrl', ['$scope', '$location', 'user',
+  function ($scope, $location, user) {
+    $scope.currentUser = null;
+    user.getCurrent().then(function(currentUser) {
+      $scope.currentUser = currentUser;
     });
+    $scope.logout = function() {
+      user.logout();
+      $scope.currentUser = null;
+      $location.path('/login');
+    };
   }
 ]);
 controllers.controller('DashboardCtrl', ['$scope',
@@ -71,26 +87,22 @@ controllers.controller('DashboardCtrl', ['$scope',
   	$scope.tasks = dummyTasks;
   }
 ]);
-controllers.controller('LoginCtrl', ['$scope', '$location',
-  function($scope, $location) {
+controllers.controller('LoginCtrl', ['$scope', '$location', 'usSpinnerService', 'user', 'blockUI',
+  function($scope, $location, usSpinnerService, $user, blockUI) {
     $scope.login = function() {
-      Parse.FacebookUtils.logIn(null, {
-      success: function(user) {
-        if (!user.existed()) {
-          console.log("User signed up and logged in through Facebook!");
-        } else {
-          console.log("User logged in through Facebook!");
-        }
-        $scope.$apply(function() {
-          $scope.$parent.isLoggedIn = true;
+      blockUI.start();
+      $scope.loginError = false;
+      $user.facebookLogin().then(
+        function(user) {
+          $scope.$parent.currentUser = user;
           $location.path('/dashboard');
+          blockUI.stop();
+        }, function(error) {
+          blockUI.stop();
+          $scope.loginError = true;
+          $scope.$parent.currentUser = null;
         });
-      },
-      error: function(user, error) {
-        alert("User cancelled the Facebook login or did not fully authorize.");
-      }
-    });
-    };
+      };
   }
 ]);
 controllers.controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'items',

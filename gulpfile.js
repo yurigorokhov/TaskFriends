@@ -16,10 +16,14 @@ var buildDir = './build/';
 
 jsFiles = _([
     'jquery/dist/jquery.js',
+    'bootstrap/dist/js/bootstrap.js',
     'underscore/underscore.js',
+    'spinjs/spin.js',
     'angular/angular.js',
     'angular-route/angular-route.js',
     'angular-ui/build/angular-ui.js',
+    'angular-spinner/angular-spinner.js',
+    'angular-block-ui/angular-block-ui.js',
     'ui-bootstrap/dist/ui-bootstrap-custom-0.10.0.js',
     'parse-js-sdk/lib/parse.js',
     'iou.js'
