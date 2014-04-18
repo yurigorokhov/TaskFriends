@@ -6,7 +6,7 @@ var iouApp = angular.module('iou', [
   'controllers',
   'iouapi',
   'angularSpinner',
-  'blockUI',
+  'blockUI'
 ]);
 
 //--- Routing ---
@@ -88,17 +88,17 @@ controllers.controller('DashboardCtrl', ['$scope',
   }
 ]);
 controllers.controller('LoginCtrl', ['$scope', '$location', 'usSpinnerService', 'user', 'blockUI',
-  function($scope, $location, usSpinnerService, $user, blockUI) {
+  function($scope, $location, usSpinnerService, $user, $blockUI) {
     $scope.login = function() {
-      blockUI.start();
+      $blockUI.start();
       $scope.loginError = false;
       $user.facebookLogin().then(
         function(user) {
           $scope.$parent.currentUser = user;
           $location.path('/dashboard');
-          blockUI.stop();
+          $blockUI.stop();
         }, function(error) {
-          blockUI.stop();
+          $blockUI.stop();
           $scope.loginError = true;
           $scope.$parent.currentUser = null;
         });

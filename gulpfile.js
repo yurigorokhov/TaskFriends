@@ -10,6 +10,9 @@ var gulpBowerFiles = require('gulp-bower-files');
 var lr = require('tiny-lr');
 var streamqueue = require('streamqueue');
 var staticServer = require('node-static');
+var size = require('gulp-size');
+var minifyCSS = require('gulp-minify-css');
+var ngmin = require('gulp-ngmin');
 var server = lr();
 
 var buildDir = './build/';
@@ -43,7 +46,9 @@ gulp.task('bower', function() {
 //--- CSS ---
 gulp.task('styles',['bower-build'], function () {
   return gulp.src(['./build/**/*.css', './css/**/*.css'])
-    .pipe(concat('iou.css'))
+    .pipe(concat('iou.min.css'))
+    .pipe(minifyCSS(opts))
+    .pipe(size())
     .pipe(gulp.dest('./public/css'));
 });
 
@@ -63,17 +68,18 @@ gulp.task('scripts', ['bower-build'], function () {
   	.pipe(gulp.dest('./build/'));
 });
 
+//TODO(yurig): we need to turn mangling on for a smaller js footprint
 gulp.task('build-scripts', ['scripts'], function () {
   return gulp.src(jsFiles)
-    .pipe(concat('iou.js'))
+    .pipe(concat('iou.min.js'))
+    .pipe(ngmin())
+    .pipe(uglify({ outSourceMap: true, mangle: false }))
+    .pipe(size())
     .pipe(gulp.dest('./public/js/'));
 });
 
 //--- All ---
-gulp.task('build-all', ['scripts', 'templates', 'styles'], function () {
-  return gulp.src(jsFiles)
-    .pipe(concat('iou.js'))
-    .pipe(gulp.dest('./public/js/'));
+gulp.task('build-all', ['build-scripts', 'templates', 'styles'], function () {
 });
 
 //--- Clean ---
