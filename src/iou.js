@@ -129,12 +129,14 @@ controllers.controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'it
   	};
   }
 ]);
-controllers.controller('ExploreCtrl', ['$scope', '$modal', '$q', 'rewards', 'tasks',
-  function ($scope, $modal, $q, rewards, tasks) {
+controllers.controller('ExploreCtrl', ['$scope', '$modal', '$q', 'rewards', 'tasks', 'blockUI',
+  function ($scope, $modal, $q, rewards, tasks, $blockUI) {
     var rewardsResultById = {};
     $scope.refreshTasks = function() {
+      $blockUI.start();
       $q.all([tasks.get(), rewards.getById()]).then(
         function(res) {
+          $blockUI.stop();
           var tasksResult = res[0];
           rewardsResultById = res[1];
           var tasksWithRewards = _(tasksResult).map(function(t) {
