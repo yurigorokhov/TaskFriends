@@ -1,3 +1,4 @@
+var fs = require('fs');
 var gulp = require('gulp');
 var concat = require('gulp-concat');
 var rename = require('gulp-rename');
@@ -13,7 +14,13 @@ var staticServer = require('node-static');
 var size = require('gulp-size');
 var minifyCSS = require('gulp-minify-css');
 var ngmin = require('gulp-ngmin');
+var gulpif = require('gulp-if');
 var server = lr();
+
+var config = { uglify: true };
+try {
+  config = eval('(' + fs.readFileSync('gulp.config', 'utf8') + ')');
+} catch (e) {}
 
 var buildDir = './build/';
 
@@ -72,8 +79,8 @@ gulp.task('scripts', ['bower-build'], function () {
 gulp.task('build-scripts', ['scripts'], function () {
   return gulp.src(jsFiles)
     .pipe(concat('iou.min.js'))
-    .pipe(ngmin())
-    .pipe(uglify({ outSourceMap: true, mangle: false }))
+    .pipe(gulpif(config.uglify, ngmin()))
+    .pipe(gulpif(config.uglify, uglify({ outSourceMap: true, mangle: false })))
     .pipe(size())
     .pipe(gulp.dest('./public/js/'));
 });

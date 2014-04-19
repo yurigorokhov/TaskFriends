@@ -19,25 +19,23 @@ iouApp.config(['$routeProvider', 'blockUIConfigProvider',
 
     // Authentication
     authFunc = function(isAuth) {
-      return function($q, $location, user) {
+      return function($q, $location, user, UserService) {
         var deferred = $q.defer();
-        user.getCurrent().then(function(currentUser) {
-            if(currentUser === null) {
-              if(!isAuth) {
-                $location.path('/login');
-                deferred.reject();
-              } else {
-                deferred.resolve();
-              }
-            } else {
-              if(isAuth) {
-                $location.path('/dashboard');
-                deferred.reject();
-              } else {
-                deferred.resolve();
-              }
-            }
-        });
+        if(UserService.User === null) {
+          if(!isAuth) {
+            $location.path('/login');
+            deferred.reject();
+          } else {
+            deferred.resolve();
+          }
+        } else {
+          if(isAuth) {
+            $location.path('/dashboard');
+            deferred.reject();
+          } else {
+            deferred.resolve();
+          }
+        }
         return deferred.promise;
       };
     };
@@ -67,17 +65,31 @@ iouApp.config(['$routeProvider', 'blockUIConfigProvider',
       });
   }]);
 
+//--- Services ---
+iouApp.service('UserService', function(user) {
+  this.User = null;
+  this.setUser = function(user) {
+    this.User = user;
+  };
+  this.logOut = function() {
+    user.logout();
+    this.User = null;
+  };
+});
+
 //--- Controllers ---
 var controllers = angular.module('controllers', ['ui.bootstrap']);
-controllers.controller('ParentCtrl', ['$scope', '$location', 'user',
-  function ($scope, $location, user) {
-    $scope.currentUser = null;
+controllers.controller('ParentCtrl', ['$scope', '$location', 'user', 'UserService',
+  function ($scope, $location, user, UserService) {
+    $scope.UserService = UserService;
+    $scope.$watch('UserService.User', function (newValue) {
+        $scope.currentUser = newValue;
+    });
     user.getCurrent().then(function(currentUser) {
-      $scope.currentUser = currentUser;
+      UserService.setUser(currentUser);
     });
     $scope.logout = function() {
-      user.logout();
-      $scope.currentUser = null;
+      UserService.logOut();
       $location.path('/login');
     };
   }
@@ -87,20 +99,20 @@ controllers.controller('DashboardCtrl', ['$scope',
   	$scope.tasks = dummyTasks;
   }
 ]);
-controllers.controller('LoginCtrl', ['$scope', '$location', 'usSpinnerService', 'user', 'blockUI',
-  function($scope, $location, usSpinnerService, $user, $blockUI) {
+controllers.controller('LoginCtrl', ['$scope', '$location', 'usSpinnerService', 'user', 'blockUI', 'UserService',
+  function($scope, $location, usSpinnerService, $user, $blockUI, UserService) {
     $scope.login = function() {
       $blockUI.start();
       $scope.loginError = false;
       $user.facebookLogin().then(
         function(user) {
-          $scope.$parent.currentUser = user;
+          UserService.setUser(user);
           $location.path('/dashboard');
           $blockUI.stop();
         }, function(error) {
           $blockUI.stop();
           $scope.loginError = true;
-          $scope.$parent.currentUser = null;
+          UserService.logOut();
         });
       };
   }
