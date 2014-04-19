@@ -2,7 +2,7 @@
 	<accordion-group ng-repeat="task in tasks">
 		<accordion-heading>
 		  <span class="label label-info pull-left">{{ task.owner }}</span>
-		  <span>{{ task.title }}</span>
+		  <span class="iou-task-title">{{ task.title }}</span>
 		  <span class="badge pull-right">${{ task.dollarValue }}</span>
 		</accordion-heading>
 		{{ task.description }}
@@ -15,5 +15,6 @@
 		  </li>
 		</ul>
 		<button type="button" class="btn btn-primary">Claim</button>
+		<button type="button" class="btn btn-danger">Delete</button>
 	</accordion-group>
 </accordion>

@@ -14,6 +14,7 @@ angular.module('iouapi-tasks', [])
           _parseObj: parseObj
         };
       },
+
       get: function() {
         var self = this;
         var deferred = $q.defer();
@@ -44,6 +45,20 @@ angular.module('iouapi-tasks', [])
           },
           error: function(task, error) {
             deferred.reject(task);
+          }
+        });
+        return deferred.promise;
+      },
+
+      deleteTask: function(task) {
+        var self = this;
+        var deferred = $q.defer();
+        task._parseObj.destroy({
+          success: function() {
+            deferred.resolve();
+          },
+          error: function() {
+            deferred.reject();
           }
         });
         return deferred.promise;

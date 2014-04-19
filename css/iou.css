@@ -3,3 +3,8 @@
 #main-container {
 	padding-top: 70px;
 }
+
+/* Tasks */
+.iou-task-title {
+	padding-left: 2%;
+}

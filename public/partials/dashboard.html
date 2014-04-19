@@ -1,7 +1,14 @@
 <div class="row">
+  <!-- In Progress -->  
+  <div class="col-md-12">
+    <h2>Your TODO list</h2>
+    <ng-include src="'/partials/tasktemplate.html'"></ng-include>
+  </div>
+</div>
 
+<div class="row">
   <!-- Assets -->
-	<div class="col-md-6">
+  <div class="col-md-6">
 		<h2>Assets</h2>
     <ng-include src="'/partials/tasktemplate.html'"></ng-include>
 	</div>
@@ -9,22 +16,6 @@
   <!-- Debts -->
   <div class="col-md-6">
   	<h2>Debts</h2>
-    <ng-include src="'/partials/tasktemplate.html'"></ng-include>
-  </div>
-</div>
-
-<!-- In Progress -->
-<div class="row">
-  <div class="col-md-12">
-    <h2>TODO</h2>
-    <ng-include src="'/partials/tasktemplate.html'"></ng-include>
-  </div>
-</div>
-
-<!-- Your tasks -->
-<div class="row">
-  <div class="col-md-12">
-    <h2>Your tasks</h2>
     <ng-include src="'/partials/tasktemplate.html'"></ng-include>
   </div>
 </div>
