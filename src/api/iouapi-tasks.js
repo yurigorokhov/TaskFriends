@@ -1,5 +1,12 @@
 angular.module('iouapi-tasks', [])
   .factory('tasks', ['$q', function($q) {
+    
+    //--- Class Fields ---
+    var TaskState = {
+      OPEN: 100,
+      CLAIMED: 200,
+      FINISHED: 300 
+    };
     return {
 
       //--- Fields ---
