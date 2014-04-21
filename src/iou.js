@@ -125,9 +125,46 @@ controllers.controller('ParentCtrl', ['$scope', '$location', 'user', 'UserServic
     };
   }
 ]);
-controllers.controller('DashboardCtrl', ['$scope',
-  function ($scope) {
-  	$scope.tasks = dummyTasks;
+controllers.controller('DashboardCtrl', ['$scope', 'tasks', 'blockUI', 'UserService', 'ErrorService', 'rewards', '$q',
+  function ($scope, tasks, $blockUI, UserService, ErrorService, rewards, $q) {
+  	$scope.todoTasks = [];
+    $scope.assetTasks = [];
+    $scope.debtTasks = [];
+    $scope.myOpenTasks = [];
+    $blockUI.start();
+    $q.all([
+        rewards.getById(), 
+        tasks.get({ claimedByUser: UserService.User }),
+        tasks.get({ claimedByUser: UserService.User, state: tasks.TaskState.FINISHED }),
+        tasks.get({ createdByUser: UserService.User, notState: tasks.TaskState.FINISHED }),
+        tasks.get({ createdByUser: UserService.User, state: tasks.TaskState.FINISHED })
+      ]).then(
+        function(res) {
+          $blockUI.stop();
+          var rewardsResultById = res[0];
+          var todoTasks = res[1];
+          var assetTasks = res[2];
+          var myOpenTasks = res[3];
+          var debtTasks = res[4];
+          $scope.todoTasks = tasks.populateWithRewardsAndPermissions(todoTasks, rewardsResultById, UserService.User);
+          $scope.assetTasks = tasks.populateWithRewardsAndPermissions(assetTasks, rewardsResultById, UserService.User);
+          $scope.myOpenTasks = tasks.populateWithRewardsAndPermissions(myOpenTasks, rewardsResultById, UserService.User);
+          $scope.debtTasks = tasks.populateWithRewardsAndPermissions(debtTasks, rewardsResultById, UserService.User);
+        },
+        function() {
+          ErrorService.showError('There was an error loading tasks');
+        });
+    $scope.deleteTask = function(task) {
+      ErrorService.clean();
+      tasks.deleteTask(task).then(function() {
+        $scope.myOpenTasks = _($scope.myOpenTasks)
+          .filter(function(t) {
+            return t.id !== task.id;
+          });
+      }, function() {
+        ErrorService.showError('There was an error deleting the task');
+      });
+    };
   }
 ]);
 controllers.controller('LoginCtrl', ['$scope', '$location', 'usSpinnerService', 'user', 'blockUI', 'UserService', 'ErrorService',
@@ -172,38 +209,25 @@ controllers.controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'it
   	};
   }
 ]);
-controllers.controller('ExploreCtrl', ['$scope', '$modal', '$q', 'rewards', 'tasks', 'blockUI', 'ErrorService',
-  function ($scope, $modal, $q, rewards, tasks, $blockUI, ErrorService) {
+controllers.controller('ExploreCtrl', ['$scope', '$modal', '$q', 'rewards', 'tasks', 'blockUI', 'ErrorService', 'UserService',
+  function ($scope, $modal, $q, rewards, tasks, $blockUI, ErrorService, UserService) {
     var rewardsResultById = {};
-    $scope.deleteTask = function(task) {
+    $scope.claim = function(task) {
       ErrorService.clean();
-      tasks.deleteTask(task).then(function() {
+      tasks.claimTask(task).then(function() {
         $scope.refreshTasks();
       }, function() {
-        ErrorService.showError('There was an error deleting the task');
+        ErrorService.showError('There was an error claiming the task');
       });
     };
     $scope.refreshTasks = function() {
       $blockUI.start();
-      $q.all([tasks.get(), rewards.getById()]).then(
+      $q.all([tasks.get({filterUser: UserService.User}), rewards.getById()]).then(
         function(res) {
           $blockUI.stop();
           var tasksResult = res[0];
           rewardsResultById = res[1];
-          var tasksWithRewards = _(tasksResult).map(function(t) {
-            var newT = t;
-            newT.prizes = _(t.prizes).map(function(p) {
-              return {
-                user: p.user,
-                reward: rewardsResultById[p.rewardId]
-              };
-            });
-
-            // Total prize worth
-            newT.dollarValue = _(newT.prizes).reduce(function(a, i) { return a + i.reward.dollarValue; }, 0);
-            return newT;
-          });
-          $scope.tasks = tasksWithRewards;
+          $scope.tasks = tasks.populateWithRewardsAndPermissions(tasksResult, rewardsResultById, UserService.User);
         },
         function() {
 

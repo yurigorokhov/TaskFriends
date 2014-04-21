@@ -8,6 +8,7 @@ angular.module('iouapi-user', [])
           name: parseObj.attributes.name,
           profilepic: parseObj.attributes.profilepic,
           email: parseObj.attributes.email,
+          id: parseObj.id,
           _parseObj: parseObj
         };
       },

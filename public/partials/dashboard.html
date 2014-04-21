@@ -1,8 +1,22 @@
-<div class="row">
+<div class="row" ng-show="todoTasks.length > 0">
   <!-- In Progress -->  
   <div class="col-md-12">
     <h2>Your TODO list</h2>
-    <ng-include src="'/partials/tasktemplate.html'"></ng-include>
+    <accordion close-others="false">
+      <accordion-group ng-repeat="task in todoTasks">
+        <accordion-heading>
+          <span class="label label-info pull-left">{{ task.createdBy.name }}</span>
+          <span class="iou-task-title">{{ task.title }}</span>
+        </accordion-heading>
+        {{ task.description }}
+        <h4>Prizes</h4>
+        <ul class="list-group">
+          <li class="list-group-item" ng-repeat="prize in task.prizes">
+            {{ prize.reward.name }}
+          </li>
+        </ul>
+      </accordion-group>
+    </accordion>
   </div>
 </div>
 
@@ -10,12 +24,67 @@
   <!-- Assets -->
   <div class="col-md-6">
 		<h2>Assets</h2>
-    <ng-include src="'/partials/tasktemplate.html'"></ng-include>
+    <div ng-show="assetTasks.length === 0" class="alert alert-info">Complete tasks to gain assets</div>
+    <accordion close-others="false" ng-show="assetTasks.length > 0">
+      <accordion-group ng-repeat="task in assetTasks">
+        <accordion-heading>
+          <span class="label label-info pull-left">{{ task.createdBy.name }}</span>
+          <span class="iou-task-title">{{ task.title }}</span>
+        </accordion-heading>
+        {{ task.description }}
+        <h4>Prizes</h4>
+        <ul class="list-group">
+          <li class="list-group-item" ng-repeat="prize in task.prizes">
+            {{ prize.reward.name }}
+          </li>
+        </ul>
+      </accordion-group>
+    </accordion>
 	</div>
 
   <!-- Debts -->
   <div class="col-md-6">
   	<h2>Debts</h2>
-    <ng-include src="'/partials/tasktemplate.html'"></ng-include>
+    <div ng-show="assetTasks.length === 0" class="alert alert-info">Create tasks to accumulate debt</div>
+    <accordion close-others="false" ng-show="assetTasks.length > 0">
+      <accordion-group ng-repeat="task in debtTasks">
+        <accordion-heading>
+          <span class="label label-info pull-left">{{ task.createdBy.name }}</span>
+          <span class="iou-task-title">{{ task.title }}</span>
+        </accordion-heading>
+        <ng-include src="'/partials/tasktemplate.html'"></ng-include>
+        {{ task.description }}
+        <h4>Prizes</h4>
+        <ul class="list-group">
+          <li class="list-group-item" ng-repeat="prize in task.prizes">
+            {{ prize.reward.name }}
+          </li>
+        </ul>
+      </accordion-group>
+    </accordion>
+  </div>
+</div>
+
+<div class="row" ng-show="myOpenTasks.length > 0">
+  <!-- My open tasks -->  
+  <div class="col-md-12">
+    <h2>My open tasks</h2>
+    <accordion close-others="false">
+      <accordion-group ng-repeat="task in myOpenTasks">
+        <accordion-heading>
+          <span class="label label-info pull-left">{{ task.createdBy.name }}</span>
+          <span class="iou-task-title">{{ task.title }}</span>
+          <span ng-show="task.permissions.isInProgress" class="pull-right label label-success">In progress</span>
+        </accordion-heading>
+        {{ task.description }}
+        <h4>Prizes</h4>
+        <ul class="list-group">
+          <li class="list-group-item" ng-repeat="prize in task.prizes">
+            {{ prize.reward.name }}
+          </li>
+        </ul>
+        <button type="button" class="btn btn-danger" ng-click="deleteTask(task)" ng-show="task.permissions.canDelete === true">Delete</button>
+      </accordion-group>
+    </accordion>
   </div>
 </div>
