@@ -40,11 +40,11 @@
           <!-- Collect the nav links, forms, and other content for toggling -->
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-              <li ng-show="currentUser !== null" ng-class="dashboardActive"><a href="#">Dashboard</a></li>
-              <li ng-show="currentUser !== null" ng-class="exploreActive"><a href="/#/explore">Explore</a></li>
+              <li ng-if="currentUser !== null" ng-class="dashboardActive"><a href="#">Dashboard</a></li>
+              <li ng-if="currentUser !== null" ng-class="exploreActive"><a href="/#/explore">Explore</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
-              <li ng-show="currentUser !== null" class="dropdown">
+              <li ng-if="currentUser !== null" class="dropdown">
                 <a href="" class="dropdown-toggle" data-toggle="dropdown">{{ currentUser.name }}<b class="caret"></b></a>
                 <ul class="dropdown-menu">
                   <li><a href="#" ng-click="logout()">Log out</a></li>
@@ -57,8 +57,8 @@
 
       <!-- Alerts -->
       <div class="container">
-        <div ng-show="errors.length > 0" ng-repeat="error in errors" class="alert alert-danger">{{ error.text }}</div>
-        <div ng-show="successes.length > 0" ng-repeat="success in successes" class="alert alert-success">{{ success.text }}</div>
+        <div ng-if="errors.length > 0" ng-repeat="error in errors" class="alert alert-danger">{{ error.text }}</div>
+        <div ng-if="successes.length > 0" ng-repeat="success in successes" class="alert alert-success">{{ success.text }}</div>
       </div>
 
       <!-- Views -->
