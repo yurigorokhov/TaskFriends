@@ -55,9 +55,10 @@
         </div><!-- /.container-fluid -->
       </nav>
 
-      <!-- Errors -->
-      <div class="container" ng-show="errors.length > 0">
-        <div ng-repeat="error in errors" class="alert alert-danger">{{ error }}</div>
+      <!-- Alerts -->
+      <div class="container">
+        <div ng-show="errors.length > 0" ng-repeat="error in errors" class="alert alert-danger">{{ error.text }}</div>
+        <div ng-show="successes.length > 0" ng-repeat="success in successes" class="alert alert-success">{{ success.text }}</div>
       </div>
 
       <!-- Views -->
