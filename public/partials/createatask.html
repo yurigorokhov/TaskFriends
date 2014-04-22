@@ -22,15 +22,14 @@
         </div>
       </div>
       <div class="form-group">
-        <label class="col-sm-2 control-label">Reward</label>
+        <label for="reward" class="col-sm-2 control-label">Reward</label>
         <div class="col-sm-10">
-          <select class="form-control" ng-model="task.reward" name="uReward" required>
-            <option ng-repeat="r in rewards" value="{{r.id}}">{{ r.name }}</option>
-          </select>
+          <input class="form-control" name="uReward" id="reward" placeholder="e.g. Beer, Lunch, ..." ng-model="task.reward" required/>
           <div ng-show="form.uReward.$dirty">
-            <span ng-show="form.uReward.$error.required">You must choose a reward</span>
+            <span ng-show="form.uReward.$error.required">You must specify a reward</span>
           </div>
         </div>
+      </div>
       </div>
     </form>
 </div>

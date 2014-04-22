@@ -20,7 +20,7 @@
 			<h4>Prizes</h4>
 			<ul class="list-group">
 			  <li class="list-group-item" ng-repeat="prize in task.prizes">
-			  	{{ prize.reward.name }}
+			  	{{ prize.reward }}
 			  </li>
 			</ul>
 			<button type="button" class="btn btn-primary" ng-click="claim(task)" ng-show="task.permissions.canClaim === true">Claim</button>

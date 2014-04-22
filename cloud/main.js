@@ -17,9 +17,9 @@ Parse.Cloud.beforeSave('Task', function(request, response) {
   	request.object.set('state', TaskState.OPEN);
   	request.object.set('createdBy', request.user);
   	if(request.object.has('prizes')) {
-  		var rewardId = request.object.get('prizes').rewardId;
+  		var reward = request.object.get('prizes').reward;
   		var newPrizes = {};
-  		newPrizes[request.user.id] = { user: request.user, rewardId: rewardId };
+  		newPrizes[request.user.id] = { user: request.user, reward: reward };
   		request.object.set('prizes', newPrizes);
   	} else {
   		response.error('Must specify a prize');
@@ -80,7 +80,7 @@ Parse.Cloud.beforeSave('Task', function(request, response) {
 					return;
 				}
 				var oldPrizes = oldObject.get('prizes');
-				oldPrizes[request.user.id] = { user: request.user, rewardId: request.object.get('prizes').rewardId };
+				oldPrizes[request.user.id] = { user: request.user, reward: request.object.get('prizes').reward };
 				request.object.set('prizes', oldPrizes);
 		  	}
 		  	response.success();

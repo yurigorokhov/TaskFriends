@@ -108,6 +108,8 @@ iouApp.service('ErrorService', function() {
 var controllers = angular.module('controllers', ['ui.bootstrap']);
 controllers.controller('ParentCtrl', ['$scope', '$location', 'user', 'UserService', 'ErrorService',
   function ($scope, $location, user, UserService, ErrorService) {
+    $scope.dashboardActive = '';
+    $scope.exploreActive = '';
     $scope.UserService = UserService;
     $scope.ErrorService = ErrorService;
     $scope.$watch('UserService.User', function (newValue) {
@@ -115,6 +117,18 @@ controllers.controller('ParentCtrl', ['$scope', '$location', 'user', 'UserServic
     });
     $scope.$watch('ErrorService.Errors', function (newValue) {
         $scope.errors = newValue;
+    });
+    $scope.$on('$locationChangeSuccess', function(e) {
+      switch($location.url()) {
+        case '/dashboard':
+          $scope.dashboardActive = 'active';
+          $scope.exploreActive = '';
+          break;
+        case '/explore':
+          $scope.dashboardActive = '';
+          $scope.exploreActive = 'active';
+          break;
+      }
     });
     user.getCurrent().then(function(currentUser) {
       UserService.setUser(currentUser);
@@ -125,15 +139,16 @@ controllers.controller('ParentCtrl', ['$scope', '$location', 'user', 'UserServic
     };
   }
 ]);
-controllers.controller('DashboardCtrl', ['$scope', 'tasks', 'blockUI', 'UserService', 'ErrorService', 'rewards', '$q',
-  function ($scope, tasks, $blockUI, UserService, ErrorService, rewards, $q) {
+controllers.controller('DashboardCtrl', ['$scope', 'tasks', 'blockUI', 'UserService', 'ErrorService', '$q',
+  function ($scope, tasks, $blockUI, UserService, ErrorService, $q) {
   	$scope.todoTasks = [];
     $scope.assetTasks = [];
     $scope.debtTasks = [];
     $scope.myOpenTasks = [];
     $blockUI.start();
     $q.all([
-        rewards.getById(), 
+
+        //TODO: this should be a cloud function!
         tasks.get({ claimedByUser: UserService.User }),
         tasks.get({ claimedByUser: UserService.User, state: tasks.TaskState.FINISHED }),
         tasks.get({ createdByUser: UserService.User, notState: tasks.TaskState.FINISHED }),
@@ -141,15 +156,14 @@ controllers.controller('DashboardCtrl', ['$scope', 'tasks', 'blockUI', 'UserServ
       ]).then(
         function(res) {
           $blockUI.stop();
-          var rewardsResultById = res[0];
-          var todoTasks = res[1];
-          var assetTasks = res[2];
-          var myOpenTasks = res[3];
-          var debtTasks = res[4];
-          $scope.todoTasks = tasks.populateWithRewardsAndPermissions(todoTasks, rewardsResultById, UserService.User);
-          $scope.assetTasks = tasks.populateWithRewardsAndPermissions(assetTasks, rewardsResultById, UserService.User);
-          $scope.myOpenTasks = tasks.populateWithRewardsAndPermissions(myOpenTasks, rewardsResultById, UserService.User);
-          $scope.debtTasks = tasks.populateWithRewardsAndPermissions(debtTasks, rewardsResultById, UserService.User);
+          var todoTasks = res[0];
+          var assetTasks = res[1];
+          var myOpenTasks = res[2];
+          var debtTasks = res[3];
+          $scope.todoTasks = tasks.populatePermissions(todoTasks, UserService.User);
+          $scope.assetTasks = tasks.populatePermissions(assetTasks, UserService.User);
+          $scope.myOpenTasks = tasks.populatePermissions(myOpenTasks, UserService.User);
+          $scope.debtTasks = tasks.populatePermissions(debtTasks, UserService.User);
         },
         function() {
           ErrorService.showError('There was an error loading tasks');
@@ -187,17 +201,13 @@ controllers.controller('LoginCtrl', ['$scope', '$location', 'usSpinnerService', 
 ]);
 controllers.controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'items',
   function($scope, $modalInstance, tasks, items) {
-    var rewardsById = {};
     $scope.task = {
       title: '',
       description: '',
-      reward: null
+      reward: ''
     };
-    $scope.reward = '';
-    rewardsById = items.getRewards();
-    $scope.rewards = _(rewardsById).values();
 	  $scope.create = function () {
-      tasks.add($scope.task, rewardsById[$scope.task.reward]).then(
+      tasks.add($scope.task).then(
         function() {
           $modalInstance.close();
           items.refresh();
@@ -209,9 +219,8 @@ controllers.controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'it
   	};
   }
 ]);
-controllers.controller('ExploreCtrl', ['$scope', '$modal', '$q', 'rewards', 'tasks', 'blockUI', 'ErrorService', 'UserService',
-  function ($scope, $modal, $q, rewards, tasks, $blockUI, ErrorService, UserService) {
-    var rewardsResultById = {};
+controllers.controller('ExploreCtrl', ['$scope', '$modal', '$q', 'tasks', 'blockUI', 'ErrorService', 'UserService',
+  function ($scope, $modal, $q, tasks, $blockUI, ErrorService, UserService) {
     $scope.claim = function(task) {
       ErrorService.clean();
       tasks.claimTask(task).then(function() {
@@ -222,12 +231,10 @@ controllers.controller('ExploreCtrl', ['$scope', '$modal', '$q', 'rewards', 'tas
     };
     $scope.refreshTasks = function() {
       $blockUI.start();
-      $q.all([tasks.get({filterUser: UserService.User}), rewards.getById()]).then(
-        function(res) {
+      tasks.get({filterUser: UserService.User}).then(
+        function(tasksResult) {
           $blockUI.stop();
-          var tasksResult = res[0];
-          rewardsResultById = res[1];
-          $scope.tasks = tasks.populateWithRewardsAndPermissions(tasksResult, rewardsResultById, UserService.User);
+          $scope.tasks = tasks.populatePermissions(tasksResult, UserService.User);
         },
         function() {
 
@@ -243,10 +250,7 @@ controllers.controller('ExploreCtrl', ['$scope', '$modal', '$q', 'rewards', 'tas
 	      resolve: {
           items: function() {
               return {
-                refresh: $scope.refreshTasks,
-                getRewards: function() {
-                  return rewardsResultById;
-                }
+                refresh: $scope.refreshTasks
               };
 	         }
         }

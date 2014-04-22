@@ -1,5 +1,5 @@
-angular.module('iouapi', ['iouapi-rewards', 'iouapi-tasks', 'iouapi-user']).
-  run(function(rewards) {
+angular.module('iouapi', ['iouapi-tasks', 'iouapi-user']).
+  run(function() {
 
     // Initialize any modules
   });

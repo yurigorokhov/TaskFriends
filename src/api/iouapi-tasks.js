@@ -35,17 +35,11 @@ angular.module('iouapi-tasks', ['iouapi-user'])
         };
       },
 
-      populateWithRewardsAndPermissions: function(tasks, rewardsById, user) {
+      populatePermissions: function(tasks, user) {
         var self = this;
         return _(tasks).map(function(t) {
           var newT = t;
           newT.permissions = self.getPermissions(t, user);
-          newT.prizes = _(t.prizes).map(function(p) {
-            return {
-              user: p.user,
-              reward: rewardsById[p.rewardId]
-            };
-          });
           return newT;
         });
       },
@@ -86,13 +80,13 @@ angular.module('iouapi-tasks', ['iouapi-user'])
         return deferred.promise;
       },
 
-      add: function(data, reward) {
+      add: function(data) {
         var self = this;
         var deferred = $q.defer();
         var task = new self._task();
         task.set('title', data.title);
         task.set('description', data.description);
-        task.set('prizes', { rewardId: reward.id });
+        task.set('prizes', { reward: data.reward });
         task.save(null, {
           success: function(result) {
             deferred.resolve();
