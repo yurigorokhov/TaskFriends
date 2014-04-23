@@ -159,11 +159,41 @@ controllers.controller('DashboardCtrl', ['$scope', 'tasks', 'blockUI', 'UserServ
     $scope.open = function () {
       var modalInstance = $modal.open({
         templateUrl: 'partials/createatask.html',
-        controller: 'NewTaskModal'
+        controller: 'NewTaskModal',
+        resolve: {
+          items: function() {
+            return {
+              addTask: function(newTask) {
+                $scope.myOpenTasks.push(tasks.populatePermissionsForTask(newTask, UserService.User));
+              }
+            };
+          }
+        }
       });
       modalInstance.result.then(function (data) {
       }, function () { });
   };
+  }
+]);
+controllers.controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'toaster', 'items',
+  function($scope, $modalInstance, tasks, toaster, items) {
+    $scope.task = {
+      title: '',
+      description: '',
+      reward: ''
+    };
+    $scope.create = function () {
+      tasks.add($scope.task).then(
+        function(newTask) {
+          $modalInstance.close();
+          items.addTask(newTask);
+          toaster.pop('success', 'Success', 'Your task was created successfully');
+      }, function() {
+      });
+    };
+    $scope.cancel = function () {
+      $modalInstance.dismiss('cancel');
+    };
   }
 ]);
 controllers.controller('LoginCtrl', ['$scope', '$location', 'usSpinnerService', 'user', 'blockUI', 'UserService', 'toaster',
@@ -183,46 +213,29 @@ controllers.controller('LoginCtrl', ['$scope', '$location', 'usSpinnerService', 
       };
   }
 ]);
-controllers.controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'toaster',
-  function($scope, $modalInstance, tasks, toaster) {
-    $scope.task = {
-      title: '',
-      description: '',
-      reward: ''
-    };
-	  $scope.create = function () {
-      tasks.add($scope.task).then(
-        function() {
-          $modalInstance.close();
-          toaster.pop('success', 'Success', 'Your task was created successfully');
-      }, function() {
-      });
-  	};
-  	$scope.cancel = function () {
-    	$modalInstance.dismiss('cancel');
-  	};
-  }
-]);
 controllers.controller('ExploreCtrl', ['$scope', '$q', 'tasks', 'blockUI', 'toaster', 'UserService',
   function ($scope, $q, tasks, $blockUI, toaster, UserService) {
     $scope.claim = function(task) {
       tasks.claimTask(task).then(function() {
-        $scope.refreshTasks();
+        $scope.tasks = _($scope.tasks).filter(function(t) {
+          return t.id !== task.id;
+        });
+        toaster.pop('success', 'Success', 'The task has been added to your TODO list');
       }, function() {
         toaster.pop('error', 'Error', 'There was an error claiming the task');
       });
     };
-    $scope.refreshTasks = function() {
-      $blockUI.start();
+
+    // load tasks
+    $blockUI.start();
       tasks.get({filterUser: UserService.User}).then(
         function(tasksResult) {
           $blockUI.stop();
           $scope.tasks = tasks.populatePermissions(tasksResult, UserService.User);
         },
         function() {
-
+          $blockUI.stop();
+          toaster.pop('error', 'Error', 'There was an error loading tasks');
         });
-    };
-    $scope.refreshTasks();
   }
 ]);

@@ -65,14 +65,14 @@
   </div>
 </div>
 
-<div class="row" ng-show="myOpenTasks.length > 0">
+<div class="row">
   <!-- My open tasks -->  
   <div class="col-md-12">
     <h2>My open tasks<button class="btn btn-primary pull-right" ng-click="open()">Create a task</button></h2>
+    <div ng-show="myOpenTasks.length === 0" class="alert alert-info">Create tasks for others to do</div>
     <accordion close-others="false">
       <accordion-group ng-repeat="task in myOpenTasks">
         <accordion-heading>
-          <span class="label label-info pull-left">{{ task.createdBy.name }}</span>
           <span class="iou-task-title">{{ task.title }}</span>
           <span ng-show="task.permissions.isInProgress" class="pull-right label label-success">In progress</span>
         </accordion-heading>

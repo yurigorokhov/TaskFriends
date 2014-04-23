@@ -38,10 +38,13 @@ angular.module('iouapi-tasks', ['iouapi-user'])
       populatePermissions: function(tasks, user) {
         var self = this;
         return _(tasks).map(function(t) {
-          var newT = t;
-          newT.permissions = self.getPermissions(t, user);
-          return newT;
+          return self.populatePermissionsForTask(t, user);
         });
+      },
+
+      populatePermissionsForTask: function(task, user) {
+        task.permissions = this.getPermissions(task, user);
+        return task;
       },
 
       get: function(options) {
@@ -89,7 +92,7 @@ angular.module('iouapi-tasks', ['iouapi-user'])
         task.set('prizes', { reward: data.reward });
         task.save(null, {
           success: function(result) {
-            deferred.resolve();
+            deferred.resolve(self._toTask(result));
           },
           error: function(task, error) {
             deferred.reject(error);
