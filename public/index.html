@@ -56,10 +56,7 @@
       </nav>
 
       <!-- Alerts -->
-      <div class="container">
-        <div ng-if="errors.length > 0" ng-repeat="error in errors" class="alert alert-danger">{{ error.text }}</div>
-        <div ng-if="successes.length > 0" ng-repeat="success in successes" class="alert alert-success">{{ success.text }}</div>
-      </div>
+      <toaster-container class="toaster-container"></toaster-container>
 
       <!-- Views -->
       <div id="main-container" class="container" ng-view>

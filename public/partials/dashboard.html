@@ -68,7 +68,7 @@
 <div class="row" ng-show="myOpenTasks.length > 0">
   <!-- My open tasks -->  
   <div class="col-md-12">
-    <h2>My open tasks</h2>
+    <h2>My open tasks<button class="btn btn-primary pull-right" ng-click="open()">Create a task</button></h2>
     <accordion close-others="false">
       <accordion-group ng-repeat="task in myOpenTasks">
         <accordion-heading>

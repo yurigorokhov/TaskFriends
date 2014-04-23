@@ -8,3 +8,8 @@
 .iou-task-title {
 	padding-left: 2%;
 }
+
+/* Toaster */
+.toaster-container {
+	padding-top: 50px;
+}

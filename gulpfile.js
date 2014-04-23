@@ -34,6 +34,8 @@ jsFiles = _([
     'angular-ui/build/angular-ui.js',
     'angular-spinner/angular-spinner.js',
     'angular-block-ui/angular-block-ui.js',
+    'angular-animate/angular-animate.js',
+    'AngularJS-Toaster/toaster.js',
     'ui-bootstrap/dist/ui-bootstrap-custom-0.10.0.js',
     'parse-js-sdk/lib/parse.js',
     'iou.js'

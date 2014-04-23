@@ -6,7 +6,8 @@ var iouApp = angular.module('iou', [
   'controllers',
   'iouapi',
   'angularSpinner',
-  'blockUI'
+  'blockUI',
+  'toaster'
 ]);
 
 //--- Routing ---
@@ -68,78 +69,29 @@ iouApp.config(['$routeProvider', 'blockUIConfigProvider',
 //--- Services ---
 iouApp.service('UserService', function(user) {
   this.User = null;
+  this._observers = [];
+  this.observe = function(func) {
+    this._observers.push(func);
+  };
   this.setUser = function(user) {
     this.User = user;
+    _(this._observers).each(function(o) { o(user); });
   };
   this.logOut = function() {
     user.logout();
     this.User = null;
+    _(this._observers).each(function(o) { o(null); });
   };
 });
-iouApp.service('AlertService', ['$timeout', function($timeout) {
-  this._observers = [];
-  this._alertId = 0;
-  this._alerts = [];
-  this._modifyAlerts = function(func) {
-    var self = this;
-    self._alerts = func(self._alerts);
-    _(self._observers).each(function(func) { func(self._alerts); });
-  };
-  this.addObserver = function(observer) {
-    this._observers.push(observer);
-  };
-  this.clean = function() {
-    this._modifyAlerts(function() { return []; });
-  };
-  this.error = function(msg) {
-    return this._message(msg, 'error');
-  };
-  this.success = function(msg) {
-    return this._message(msg, 'success');
-  };
-  this._message = function(msg, type) {
-    var self = this;
-    type = type || 'success';
-    var id = self._alertId++;
-    self._modifyAlerts(function(alerts) { 
-      alerts.push({ id: id, text: msg, type: type });
-      return alerts;
-    });
-    var removeSelf = function() {
-        self._modifyAlerts(function(alerts) {
-          return alerts.filter(function(x) { 
-            return x.id !== id; 
-          });
-        });
-      };
-    return {
-      remove: removeSelf,
-      timeout: function(milliseconds) {
-        milliseconds = milliseconds || 3000;
-        $timeout(removeSelf, milliseconds);
-      }
-    };
-  };
-}]);
 
 //--- Controllers ---
 var controllers = angular.module('controllers', ['ui.bootstrap']);
-controllers.controller('ParentCtrl', ['$scope', '$location', 'user', 'UserService', 'AlertService',
-  function ($scope, $location, user, UserService, AlertService) {
-    $scope.errors = [];
-    $scope.successes = [];
+controllers.controller('ParentCtrl', ['$scope', '$location', 'user', 'UserService',
+  function ($scope, $location, user, UserService) {
     $scope.dashboardActive = '';
     $scope.exploreActive = '';
-    $scope.UserService = UserService;
-    $scope.AlertService = AlertService;
-    $scope.$watch('UserService.User', function (newValue) {
-        $scope.currentUser = newValue;
-    });
-    AlertService.addObserver(function (newValue) {
-      $scope.errors = _(newValue)
-        .filter(function(x) { return x.type === 'error'; });
-      $scope.successes = _(newValue)
-        .filter(function(x) { return x.type === 'success'; });
+    UserService.observe(function(newValue) {
+      $scope.currentUser = newValue;
     });
     $scope.$on('$locationChangeSuccess', function(e) {
       switch($location.url()) {
@@ -162,8 +114,8 @@ controllers.controller('ParentCtrl', ['$scope', '$location', 'user', 'UserServic
     };
   }
 ]);
-controllers.controller('DashboardCtrl', ['$scope', 'tasks', 'blockUI', 'UserService', 'AlertService', '$q',
-  function ($scope, tasks, $blockUI, UserService, AlertService, $q) {
+controllers.controller('DashboardCtrl', ['$scope', 'tasks', 'blockUI', 'UserService', '$q', 'toaster', '$modal',
+  function ($scope, tasks, $blockUI, UserService, $q, toaster, $modal) {
   	$scope.todoTasks = [];
     $scope.assetTasks = [];
     $scope.debtTasks = [];
@@ -189,27 +141,35 @@ controllers.controller('DashboardCtrl', ['$scope', 'tasks', 'blockUI', 'UserServ
           $scope.debtTasks = tasks.populatePermissions(debtTasks, UserService.User);
         },
         function() {
-          AlertService.error('There was an error loading tasks');
+          toaster.pop('error', 'Error', 'There was an error loading tasks');
         });
     $scope.deleteTask = function(task) {
-      AlertService.clean();
       tasks.deleteTask(task).then(function() {
-        AlertService.success('Your task was successfully deleted').timeout();
+        toaster.pop('success', 'Success', 'Your task was successfully deleted');
         $scope.myOpenTasks = _($scope.myOpenTasks)
           .filter(function(t) {
             return t.id !== task.id;
           });
       }, function() {
-        AlertService.error('There was an error deleting the task');
+        toaster.pop('error', 'Error', 'There was an error deleting the task');
       });
     };
+
+    // new task modal
+    $scope.open = function () {
+      var modalInstance = $modal.open({
+        templateUrl: 'partials/createatask.html',
+        controller: 'NewTaskModal'
+      });
+      modalInstance.result.then(function (data) {
+      }, function () { });
+  };
   }
 ]);
-controllers.controller('LoginCtrl', ['$scope', '$location', 'usSpinnerService', 'user', 'blockUI', 'UserService', 'AlertService',
-  function($scope, $location, usSpinnerService, $user, $blockUI, UserService, AlertService) {
+controllers.controller('LoginCtrl', ['$scope', '$location', 'usSpinnerService', 'user', 'blockUI', 'UserService', 'toaster',
+  function($scope, $location, usSpinnerService, $user, $blockUI, UserService, toaster) {
     $scope.login = function() {
       $blockUI.start();
-      AlertService.clean();
       $user.facebookLogin().then(
         function(user) {
           UserService.setUser(user);
@@ -217,14 +177,14 @@ controllers.controller('LoginCtrl', ['$scope', '$location', 'usSpinnerService', 
           $blockUI.stop();
         }, function(error) {
           $blockUI.stop();
-          AlertService.error('There was an error logging in, please try again.');
+          toaster.pop('error', 'Error', 'There was an error logging in, please try again.');
           UserService.logOut();
         });
       };
   }
 ]);
-controllers.controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'items', 'AlertService',
-  function($scope, $modalInstance, tasks, items, AlertService) {
+controllers.controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'toaster',
+  function($scope, $modalInstance, tasks, toaster) {
     $scope.task = {
       title: '',
       description: '',
@@ -234,8 +194,7 @@ controllers.controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'it
       tasks.add($scope.task).then(
         function() {
           $modalInstance.close();
-          AlertService.success('Your task was created successfully').timeout();
-          items.refresh();
+          toaster.pop('success', 'Success', 'Your task was created successfully');
       }, function() {
       });
   	};
@@ -244,14 +203,13 @@ controllers.controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'it
   	};
   }
 ]);
-controllers.controller('ExploreCtrl', ['$scope', '$modal', '$q', 'tasks', 'blockUI', 'AlertService', 'UserService',
-  function ($scope, $modal, $q, tasks, $blockUI, AlertService, UserService) {
+controllers.controller('ExploreCtrl', ['$scope', '$q', 'tasks', 'blockUI', 'toaster', 'UserService',
+  function ($scope, $q, tasks, $blockUI, toaster, UserService) {
     $scope.claim = function(task) {
-      AlertService.clean();
       tasks.claimTask(task).then(function() {
         $scope.refreshTasks();
       }, function() {
-        AlertService.error('There was an error claiming the task');
+        toaster.pop('error', 'Error', 'There was an error claiming the task');
       });
     };
     $scope.refreshTasks = function() {
@@ -266,24 +224,5 @@ controllers.controller('ExploreCtrl', ['$scope', '$modal', '$q', 'tasks', 'block
         });
     };
     $scope.refreshTasks();
-
-  	// new task modal
-  	$scope.open = function () {
-	    var modalInstance = $modal.open({
-	      templateUrl: 'partials/createatask.html',
-	      controller: 'NewTaskModal',
-	      resolve: {
-          items: function() {
-              return {
-                refresh: $scope.refreshTasks
-              };
-	         }
-        }
-    	});
-
-    	modalInstance.result.then(function (data) {
-    	}, function () { });
-	};
-
   }
 ]);
