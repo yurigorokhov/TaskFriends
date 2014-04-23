@@ -15,6 +15,7 @@ angular.module('iouapi-tasks', ['iouapi-user'])
 
       //--- Methods ---
       _toTask: function(parseObj) {
+        var self = this;
         return {
           title: parseObj.attributes.title,
           description: parseObj.attributes.description,
@@ -27,7 +28,7 @@ angular.module('iouapi-tasks', ['iouapi-user'])
         };
       },
 
-      getPermissions: function(task, user) {
+      _getPermissions: function(task, user) {
         return {
           canDelete: (task.createdBy.id === user.id && task.state === TaskState.OPEN),
           canClaim: (task.createdBy.id !== user.id && task.state === TaskState.OPEN),
@@ -43,7 +44,7 @@ angular.module('iouapi-tasks', ['iouapi-user'])
       },
 
       populatePermissionsForTask: function(task, user) {
-        task.permissions = this.getPermissions(task, user);
+        task.permissions = this._getPermissions(task, user);
         return task;
       },
 
@@ -81,6 +82,33 @@ angular.module('iouapi-tasks', ['iouapi-user'])
           }
         });
         return deferred.promise;
+      },
+
+      getDashboardTasks: function(user) {
+        var self = this;
+        var def = $q.defer();
+        Parse.Cloud.run('GetDashboardTasks', {}, {
+          success: function(res) {
+            def.resolve({
+              todoTasks: _(res.todoTasks).map(function(t) { 
+                return self.populatePermissionsForTask(self._toTask(t), user); 
+              }),
+              assetTasks: _(res.assetTasks).map(function(t) { 
+                return self.populatePermissionsForTask(self._toTask(t), user); 
+              }),
+              debtTasks: _(res.debtTasks).map(function(t) { 
+                return self.populatePermissionsForTask(self._toTask(t), user); 
+              }),
+              myOpenTasks: _(res.myOpenTasks).map(function(t) { 
+                return self.populatePermissionsForTask(self._toTask(t), user); 
+              })
+            });
+          },
+          error: function(error) {
+            def.reject(error);
+          }
+        });
+        return def.promise;
       },
 
       add: function(data) {

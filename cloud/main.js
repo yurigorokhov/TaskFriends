@@ -101,3 +101,62 @@ Parse.Cloud.beforeDelete('Task', function(request, response) {
 		response.success();
 	}
 });
+
+//--- Dashboard ---
+var parseQuery = function(query) {
+	var def = Q.defer();
+	query.find({
+    success: function(results) {
+      def.resolve(results);
+    },
+    error: function(error) {
+      def.reject(error);
+    }
+  });
+  return def.promise;
+};
+
+Parse.Cloud.define('GetDashboardTasks', function(request, response) {
+  
+  // TODO
+  var todoQuery = new Parse.Query('Task');
+  todoQuery.include('createdBy');
+  todoQuery.equalTo('claimedBy', request.user);
+  todoQuery.equalTo('state', TaskState.CLAIMED);
+
+  // assets
+  var assetQuery = new Parse.Query('Task');
+  assetQuery.include('createdBy');
+  assetQuery.equalTo('claimedBy', request.user);
+  assetQuery.equalTo('state', TaskState.FINISHED);
+
+  // debts
+  var debtQuery = new Parse.Query('Task');
+  debtQuery.include('createdBy');
+  debtQuery.equalTo('createdBy', request.user);
+  debtQuery.equalTo('state', TaskState.FINISHED);
+
+  // my tasks
+  var myTasks = new Parse.Query('Task');
+  myTasks.include('createdBy');
+  myTasks.equalTo('createdBy', request.user);
+  myTasks.notEqualTo('state', TaskState.FINISHED);
+
+  // Run queries
+  Q.all([
+  	parseQuery(todoQuery), 
+  	parseQuery(assetQuery), 
+  	parseQuery(debtQuery), 
+  	parseQuery(myTasks)]
+  ).then(function(res) {
+  	response.success({
+  		todoTasks: res[0],
+  		assetTasks: res[1],
+  		debtTasks: res[2],
+  		myOpenTasks: res[3]
+  	});
+  }, function(error) {
+  	response.error(error);
+  });
+});
+

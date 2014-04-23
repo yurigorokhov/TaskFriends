@@ -121,28 +121,19 @@ controllers.controller('DashboardCtrl', ['$scope', 'tasks', 'blockUI', 'UserServ
     $scope.debtTasks = [];
     $scope.myOpenTasks = [];
     $blockUI.start();
-    $q.all([
-
-        //TODO: this should be a cloud function!
-        tasks.get({ claimedByUser: UserService.User }),
-        tasks.get({ claimedByUser: UserService.User, state: tasks.TaskState.FINISHED }),
-        tasks.get({ createdByUser: UserService.User, notState: tasks.TaskState.FINISHED }),
-        tasks.get({ createdByUser: UserService.User, state: tasks.TaskState.FINISHED })
-      ]).then(
-        function(res) {
-          $blockUI.stop();
-          var todoTasks = res[0];
-          var assetTasks = res[1];
-          var myOpenTasks = res[2];
-          var debtTasks = res[3];
-          $scope.todoTasks = tasks.populatePermissions(todoTasks, UserService.User);
-          $scope.assetTasks = tasks.populatePermissions(assetTasks, UserService.User);
-          $scope.myOpenTasks = tasks.populatePermissions(myOpenTasks, UserService.User);
-          $scope.debtTasks = tasks.populatePermissions(debtTasks, UserService.User);
-        },
-        function() {
-          toaster.pop('error', 'Error', 'There was an error loading tasks');
-        });
+    tasks.getDashboardTasks(UserService.User).then(
+      function(res) {
+        $blockUI.stop();
+        $scope.todoTasks = res.todoTasks;
+        $scope.assetTasks = res.assetTasks;
+        $scope.debtTasks = res.debtTasks;
+        $scope.myOpenTasks = res.myOpenTasks;
+      },
+      function() {
+        $blockUI.stop();
+        toaster.pop('error', 'Error', 'There was an error loading the Dashboard');
+      }
+    );
     $scope.deleteTask = function(task) {
       tasks.deleteTask(task).then(function() {
         toaster.pop('success', 'Success', 'Your task was successfully deleted');
