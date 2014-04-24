@@ -67,31 +67,92 @@ iouApp.config(['$routeProvider', 'blockUIConfigProvider',
   }]);
 
 //--- Services ---
-iouApp.service('UserService', function(user) {
+iouApp.service('UserService', function(user, circles, $q, $location) {
   this.User = null;
+  this.Circles = null;
   this._observers = [];
+  this._circleObservers = [];
   this.observe = function(func) {
     this._observers.push(func);
   };
+  this.observeCircleChange = function(func) {
+    this._circleObservers.push(func);
+  };
+  this.changeCircle = function(circle) {
+    var def = $q.defer();
+    var self = this;
+    if(self.User === null || self.Circles === null) {
+      throw 'User or Circles are not set';
+    }
+    user.changeCircle(circle).then(
+      function(newUser) {
+        self.User = newUser;
+        _(self._circleObservers).each(function(o) { o(circle); });
+        def.resolve();
+      },
+      function(error) {
+        def.reject(error);
+      }
+    );
+    return def.promise;
+  };
   this.setUser = function(user) {
-    this.User = user;
-    _(this._observers).each(function(o) { o(user); });
+    var self = this;
+
+    // Do not allow setting of a user twice
+    if(self.User !== null) {
+      throw 'A user has already been set, logout first!';
+    }
+    
+    // get and unset the invitation token
+    var invitationToken = $location.search().invite;
+    $location.search('invite', null);
+    self.User = user;
+    if(user !== null && 'currentCircle' in user) {
+      _(self._circleObservers).each(function(o) { o(user.currentCircle); });
+    }
+    if(user === null) {
+      self.Circles = null;
+      _(self._observers).each(function(o) { o({ user: user, circles: null }); });
+    } else {
+      circles.getCircles(invitationToken).then(
+        function(circles) {
+          self.Circles = circles;
+          if(_(self.User.currentCircle).isUndefined() && circles.length > 0) {
+            self.changeCircle(circles[0]);
+          }
+          _(self._observers).each(function(o) { o({ user: user, circles: circles }); });
+        },
+        function() {
+          self.Circles = null;
+          _(self._observers).each(function(o) { o({ user: user, circles: null }); });
+        }
+      );
+    }
+    
   };
   this.logOut = function() {
     user.logout();
     this.User = null;
-    _(this._observers).each(function(o) { o(null); });
+    this.Circles = null;
+    _(this._observers).each(function(o) { o({ user: null, circles: null }); });
   };
 });
 
 //--- Controllers ---
 var controllers = angular.module('controllers', ['ui.bootstrap']);
-controllers.controller('ParentCtrl', ['$scope', '$location', 'user', 'UserService',
-  function ($scope, $location, user, UserService) {
+controllers.controller('ParentCtrl', ['$scope', '$location', 'user', 'UserService', 'toaster', 'blockUI', '$modal',
+  function ($scope, $location, user, UserService, toaster, $blockUI, $modal) {
+    $scope.currentUser = null;
+    $scope.circles = null;
     $scope.dashboardActive = '';
     $scope.exploreActive = '';
     UserService.observe(function(newValue) {
-      $scope.currentUser = newValue;
+      $scope.currentUser = newValue.user;
+      $scope.circles = newValue.circles;
+    });
+    UserService.observeCircleChange(function(circle) {
+      $scope.currentCircle = circle;
     });
     $scope.$on('$locationChangeSuccess', function(e) {
       switch($location.url()) {
@@ -106,11 +167,65 @@ controllers.controller('ParentCtrl', ['$scope', '$location', 'user', 'UserServic
       }
     });
     user.getCurrent().then(function(currentUser) {
-      UserService.setUser(currentUser);
+      if(currentUser !== null) {
+        UserService.setUser(currentUser);
+      }
     });
     $scope.logout = function() {
       UserService.logOut();
       $location.path('/login');
+    };
+    $scope.isActiveCircle = function(c) {
+      return c === $scope.currentCircle ? 'active' : '';
+    };
+    $scope.setCurrentCircle = function(c) {
+      $blockUI.start();
+      UserService.changeCircle(c).then(
+        function() {
+          $blockUI.reset();
+          $scope.currentCircle = c;
+        },
+        function() {
+          $blockUI.reset();
+          toaster.pop('error', 'Error', 'There was an error loading ' + c);
+        }
+      );
+    };
+
+    // invite friends modal
+    $scope.inviteFriends = function () {
+      var modalInstance = $modal.open({
+        templateUrl: 'partials/invitefriends.html',
+        controller: 'InviteFriendsCtrl',
+        resolve: {}
+      });
+      modalInstance.result.then(function (data) {
+      }, function () { });
+    };
+  }
+]);
+controllers.controller('InviteFriendsCtrl', ['$scope', '$modalInstance', 'toaster', 'UserService', 'user', 'blockUI',
+  function($scope, $modalInstance, toaster, UserService, user, $blockUI) {
+    $scope.invitations = {
+      emails: ''
+    };
+    $scope.currentCircle = UserService.User.currentCircle;
+    $scope.invite = function (invitations) {
+      $blockUI.start();
+      user.inviteViaEmail(invitations.emails.split(',')).then(
+        function() {
+          $modalInstance.close();
+          $blockUI.reset();
+          toaster.pop('success', 'Success', 'Your invitations have been sent!');
+        },
+        function() {
+          $blockUI.reset();
+          toaster.pop('error', 'Error', 'There was an error sending the invitations, please try again');
+        }
+      );
+    };
+    $scope.cancel = function () {
+      $modalInstance.dismiss('cancel');
     };
   }
 ]);
@@ -120,20 +235,29 @@ controllers.controller('DashboardCtrl', ['$scope', 'tasks', 'blockUI', 'UserServ
     $scope.assetTasks = [];
     $scope.debtTasks = [];
     $scope.myOpenTasks = [];
-    $blockUI.start();
-    tasks.getDashboardTasks(UserService.User).then(
-      function(res) {
-        $blockUI.stop();
-        $scope.todoTasks = res.todoTasks;
-        $scope.assetTasks = res.assetTasks;
-        $scope.debtTasks = res.debtTasks;
-        $scope.myOpenTasks = res.myOpenTasks;
-      },
-      function() {
-        $blockUI.stop();
-        toaster.pop('error', 'Error', 'There was an error loading the Dashboard');
-      }
-    );
+    var refreshDasboard = function() {
+      $blockUI.start();
+      tasks.getDashboardTasks(UserService.User).then(
+        function(res) {
+          $blockUI.reset();
+          $scope.todoTasks = res.todoTasks;
+          $scope.assetTasks = res.assetTasks;
+          $scope.debtTasks = res.debtTasks;
+          $scope.myOpenTasks = res.myOpenTasks;
+        },
+        function() {
+          $blockUI.reset();
+          toaster.pop('error', 'Error', 'There was an error loading the Dashboard');
+        }
+      );
+    };
+    if(UserService.User.currentCircle) {
+      refreshDasboard();
+    }
+
+    // Refresh the dashboard anytime the user changes
+    UserService.observeCircleChange(refreshDasboard);
+
     $scope.deleteTask = function(task) {
       tasks.deleteTask(task).then(function() {
         toaster.pop('success', 'Success', 'Your task was successfully deleted');
@@ -163,7 +287,7 @@ controllers.controller('DashboardCtrl', ['$scope', 'tasks', 'blockUI', 'UserServ
       });
       modalInstance.result.then(function (data) {
       }, function () { });
-  };
+    };
   }
 ]);
 controllers.controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'toaster', 'items',
@@ -218,8 +342,9 @@ controllers.controller('ExploreCtrl', ['$scope', '$q', 'tasks', 'blockUI', 'toas
     };
 
     // load tasks
-    $blockUI.start();
-      tasks.get({filterUser: UserService.User}).then(
+    var reloadTasks = function() {
+      $blockUI.start();
+      tasks.get({filterUser: UserService.User}, UserService.User.currentCircle).then(
         function(tasksResult) {
           $blockUI.stop();
           $scope.tasks = tasks.populatePermissions(tasksResult, UserService.User);
@@ -228,5 +353,8 @@ controllers.controller('ExploreCtrl', ['$scope', '$q', 'tasks', 'blockUI', 'toas
           $blockUI.stop();
           toaster.pop('error', 'Error', 'There was an error loading tasks');
         });
+    };
+    reloadTasks();
+    UserService.observeCircleChange(reloadTasks);
   }
 ]);

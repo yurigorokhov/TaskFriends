@@ -8,6 +8,7 @@ angular.module('iouapi-user', [])
           name: parseObj.attributes.name,
           profilepic: parseObj.attributes.profilepic,
           email: parseObj.attributes.email,
+          currentCircle: parseObj.attributes.currentCircle,
           id: parseObj.id,
           _parseObj: parseObj
         };
@@ -66,6 +67,46 @@ angular.module('iouapi-user', [])
           }
         });
         return deferred.promise;
+      },
+
+      changeCircle: function(circle) {
+        var self = this;
+        var def = $q.defer();
+        self.getCurrent().then(
+          function(user) {
+            if(user.currentCircle === circle) {
+              def.resolve(user);
+            } else {
+              user._parseObj.save({
+                currentCircle: circle
+              }, {
+                success: function(newUser) {
+                  def.resolve(self._toUser(newUser));
+                },
+                error: function(error) {
+                  def.reject(error);
+                }
+              });
+            }
+          },
+          function(error) {
+            def.reject(error);
+          }
+        );
+        return def.promise;
+      },
+
+      inviteViaEmail: function(emails) {
+        var def = $q.defer();
+        Parse.Cloud.run('InviteFriends', { emails: emails }, {
+          success: function() {
+            def.resolve();
+          },
+          error: function() {
+            def.reject();
+          }
+        });
+        return def.promise;
       }
     };
   }]);

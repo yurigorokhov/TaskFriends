@@ -48,9 +48,13 @@ angular.module('iouapi-tasks', ['iouapi-user'])
         return task;
       },
 
-      get: function(options) {
+      get: function(options, circle) {
         var self = this;
         var deferred = $q.defer();
+        if(!circle) {
+          deferred.reject('Must specify circle');
+          return deferred.promise;
+        }
         options = options || {};
 
         // fetch prizes
@@ -87,27 +91,31 @@ angular.module('iouapi-tasks', ['iouapi-user'])
       getDashboardTasks: function(user) {
         var self = this;
         var def = $q.defer();
-        Parse.Cloud.run('GetDashboardTasks', {}, {
-          success: function(res) {
-            def.resolve({
-              todoTasks: _(res.todoTasks).map(function(t) { 
-                return self.populatePermissionsForTask(self._toTask(t), user); 
-              }),
-              assetTasks: _(res.assetTasks).map(function(t) { 
-                return self.populatePermissionsForTask(self._toTask(t), user); 
-              }),
-              debtTasks: _(res.debtTasks).map(function(t) { 
-                return self.populatePermissionsForTask(self._toTask(t), user); 
-              }),
-              myOpenTasks: _(res.myOpenTasks).map(function(t) { 
-                return self.populatePermissionsForTask(self._toTask(t), user); 
-              })
-            });
-          },
-          error: function(error) {
-            def.reject(error);
-          }
-        });
+        if(!user || !user.currentCircle) {
+          def.reject('No current circle was set');
+        } else {
+          Parse.Cloud.run('GetDashboardTasks', { circle: user.currentCircle }, {
+            success: function(res) {
+              def.resolve({
+                todoTasks: _(res.todoTasks).map(function(t) { 
+                  return self.populatePermissionsForTask(self._toTask(t), user); 
+                }),
+                assetTasks: _(res.assetTasks).map(function(t) { 
+                  return self.populatePermissionsForTask(self._toTask(t), user); 
+                }),
+                debtTasks: _(res.debtTasks).map(function(t) { 
+                  return self.populatePermissionsForTask(self._toTask(t), user); 
+                }),
+                myOpenTasks: _(res.myOpenTasks).map(function(t) { 
+                  return self.populatePermissionsForTask(self._toTask(t), user); 
+                })
+              });
+            },
+            error: function(error) {
+              def.reject(error);
+            }
+          });
+        }
         return def.promise;
       },
 

@@ -1,0 +1,20 @@
+<div class="modal-header">
+    <h3>Invite friends to {{ currentCircle }}</h3>
+</div>
+<div class="modal-body">
+  <form class="form-horizontal css-form" role="form" name="form" novalidate>
+    <div class="form-group">
+      <label class="col-sm-2 control-label">Emails</label>
+      <div class="col-sm-10">
+        <textarea class="form-control" rows="3" placeholder="damienh@company.com, shannong@company.com" ng-model="invitations.emails" name="uEmails" required></textarea>
+        <div ng-show="form.uEmails.$dirty">
+          <span ng-show="form.uEmails.$error.required">You must specify at least 1 email</span>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" ng-disabled="form.$invalid" ng-click="invite(invitations)">Invite</button>
+    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+</div>

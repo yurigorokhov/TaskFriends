@@ -21,7 +21,6 @@
     "angular-ui": "~0.4.0",
     "bootstrap": "~3.1.1",
     "angular-route": "~1.2.16",
-    "parse-js-sdk": "~1.2.16",
     "angular-spinner": "~0.4.0",
     "spinjs": "~2.0.0",
     "angular-block-ui": "~0.0.8",

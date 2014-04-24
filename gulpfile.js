@@ -37,7 +37,6 @@ jsFiles = _([
     'angular-animate/angular-animate.js',
     'AngularJS-Toaster/toaster.js',
     'ui-bootstrap/dist/ui-bootstrap-custom-0.10.0.js',
-    'parse-js-sdk/lib/parse.js',
     'iou.js'
   ]).map(function(p) { return buildDir + p; });
 

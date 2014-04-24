@@ -1,4 +1,4 @@
-angular.module('iouapi', ['iouapi-tasks', 'iouapi-user']).
+angular.module('iouapi', ['iouapi-tasks', 'iouapi-user', 'iouapi-circles']).
   run(function() {
 
     // Initialize any modules
