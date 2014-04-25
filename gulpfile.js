@@ -48,7 +48,7 @@ gulp.task('bower-build', ['bower'], function() {
 
 gulp.task('bower', function() {
   return bower()
-    .pipe(gulp.dest('redist/'));
+    .pipe(gulp.dest('bower_redist/'));
 });
 
 //--- CSS ---
