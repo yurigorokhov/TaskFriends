@@ -1,8 +1,7 @@
 var Q = require('cloud/q.min.js');
 var _ = require('underscore');
-var Mandrill = require('mandrill');
-
-Mandrill.initialize('nl2rSwfmJDSoVkXEMTUNnQ');
+var util = require('cloud/util.js');
+var invitations = require('cloud/invitations.js');
 
 //--- Tasks ---
 TaskState = {
@@ -12,7 +11,6 @@ TaskState = {
 };
 
 var Task = Parse.Object.extend('Task');
-var Invitation = Parse.Object.extend('Invitation');
 
 Parse.Cloud.beforeSave('Task', function(request, response) {
   var currentCircle = request.user.get('currentCircle');
@@ -124,19 +122,6 @@ Parse.Cloud.beforeDelete('Task', function(request, response) {
 });
 
 //--- Dashboard ---
-var parseQuery = function(query) {
-	var def = Q.defer();
-	query.find({
-    success: function(results) {
-      def.resolve(results);
-    },
-    error: function(error) {
-      def.reject(error);
-    }
-  });
-  return def.promise;
-};
-
 Parse.Cloud.define('GetDashboardTasks', function(request, response) {
   
   // get current circle
@@ -178,10 +163,10 @@ Parse.Cloud.define('GetDashboardTasks', function(request, response) {
 
   // Run queries
   Q.all([
-  	parseQuery(todoQuery), 
-  	parseQuery(assetQuery), 
-  	parseQuery(debtQuery), 
-  	parseQuery(myTasks)]
+  	util.parseQuery(todoQuery), 
+  	util.parseQuery(assetQuery), 
+  	util.parseQuery(debtQuery), 
+  	util.parseQuery(myTasks)]
   ).then(function(res) {
   	response.success({
   		todoTasks: res[0],
@@ -207,7 +192,7 @@ Parse.Cloud.define('GetUserCircles', function(request, response) {
   // fetch the roles!
   var actions = [getRoles(request.user)];
   if(!_(invitationToken).isEmpty()) {
-    actions.push(findInvitation(invitationToken));
+    actions.push(invitations.findInvitation(invitationToken));
   }
   Q.allSettled(actions).then(
     function(results) {
@@ -258,21 +243,6 @@ Parse.Cloud.define('GetUserCircles', function(request, response) {
   );
 });
 
-var findInvitation = function(invitationToken) {
-  var def = Q.defer();
-  var tokenQuery = new Parse.Query(Invitation);
-  tokenQuery.equalTo('token', invitationToken);
-  tokenQuery.first({
-    success: function(invite) {
-      def.resolve(invite);
-    },
-    error: function() {
-      def.reject();
-    }
-  });
-  return def.promise;
-}
-
 var getRoles = function(user) {
   var def = Q.defer();
   (new Parse.Query(Parse.Role)).equalTo('users', user).find({
@@ -322,7 +292,7 @@ Parse.Cloud.define('InviteFriends', function(request, response) {
   }
 
   // create and send invitations
-  Q.all(_(emails).map(function(email) { return createInvitationAndSendEmail(email, request.user, currentCircle); })).then(
+  Q.all(_(emails).map(function(email) { return invitations.createInvitationAndSendEmail(email, request.user, currentCircle); })).then(
     function() {
       response.success();
     },
@@ -331,54 +301,3 @@ Parse.Cloud.define('InviteFriends', function(request, response) {
     }
   );
 });
-
-var createInvitationAndSendEmail = function(email, user, circle) {
-  var def = Q.defer();
-  var g = guid();
-  var newInvite = new Invitation();
-  newInvite.set('createdBy', user);
-  newInvite.set('sentTo', email);
-  newInvite.set('token', g);
-  newInvite.set('circle', circle);
-  newInvite.save(null, {
-    success: function() {
-      Mandrill.sendEmail({
-        message: {
-          text: 'Please follow the following link: https://ontab.parseapp.com/#/login?invite=' + g,
-          subject: 'You have been invited to OnTab',
-          from_email: "admin@ontab.parseapp.com",
-          from_name: "OnTab",
-          to: [
-            {
-              email: email,
-              name: email
-            }
-          ]
-        },
-        async: true
-      },{
-        success: function(httpResponse) {
-          def.resolve();
-        },
-        error: function(httpResponse) {
-          console.error(httpResponse);
-          def.reject();
-        }
-      });
-    },
-    error: function() {
-      def.reject('Failed to save invitation');
-    }
-  });
-  return def.promise;
-};
-
-var guid = function() {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-               .toString(16)
-               .substring(1);
-  }
-  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-         s4() + '-' + s4() + s4() + s4();
-};
