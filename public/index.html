@@ -18,6 +18,10 @@
       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
       <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
+
+    <!-- Load these suckers first, so we have Angular ready to go -->
+    <script src="//www.parsecdn.com/js/parse-1.2.18.min.js"></script>
+    <script src="js/iou.min.js"></script>
   </head>
   <body>
     <div id="fb-root"></div>
@@ -71,8 +75,6 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="//www.parsecdn.com/js/parse-1.2.18.min.js"></script>
-    <script src="js/iou.min.js"></script>
     <script>
       window.fbAsyncInit = function() {
         Parse.FacebookUtils.init({

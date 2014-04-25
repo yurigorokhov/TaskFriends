@@ -4,6 +4,6 @@ public/template
 build/
 config/
 node_modules/
-redist/
+bower_redist/
 gulp.config
 *.sublime-workspace
