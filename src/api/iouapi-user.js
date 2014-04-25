@@ -25,6 +25,39 @@ angular.module('iouapi-user', [])
         Parse.User.logOut();
       },
 
+      login: function(username, password) {
+        var self = this;
+        var def = $q.defer();
+        Parse.User.logIn(username, password, {
+          success: function(newUser) {
+            def.resolve(self._toUser(newUser));
+          },
+          error: function(user, error) {
+            def.reject(error.message);
+          }
+        });
+        return def.promise;
+      },
+
+      register: function(userData) {
+        var self = this;
+        var def = $q.defer();
+        var user = new Parse.User();
+        user.set('username', userData.email);
+        user.set('password', userData.password);
+        user.set('email', userData.email);
+        user.set('name', userData.displayname);
+        user.signUp(null, {
+          success: function(newUser) {
+            def.resolve(self._toUser(newUser));
+          },
+          error: function(newUser, error) {
+            def.reject(error.message);
+          }
+        });
+        return def.promise;
+      },
+
       facebookLogin: function() {
         var self = this;
         var deferred = $q.defer();
