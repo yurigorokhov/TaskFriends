@@ -6,3 +6,4 @@ config/
 node_modules/
 redist/
 gulp.config
+*.sublime-workspace
