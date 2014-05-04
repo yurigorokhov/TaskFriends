@@ -1,0 +1,17 @@
+{
+	"folders":
+	[
+		{
+			"folder_exclude_patterns":
+			[
+				"build",
+				"node_modules",
+				"config",
+				"bower_redist",
+				"redist"
+			],
+			"follow_symlinks": true,
+			"path": "."
+		}
+	]
+}
