@@ -1,9 +1,0 @@
-{
-	"folders":
-	[
-		{
-			"path": "/home/yurig/Workspace/OnTab",
-			"folder_exclude_patterns": ["build", "node_modules", "config", "bower_redist", "redist"]
-		}
-	]
-}
