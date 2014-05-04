@@ -25,52 +25,71 @@
   </head>
   <body>
     <div id="fb-root"></div>
-    <div ng-controller="ParentCtrl">
+    <div id="wrapper">
+      <div ng-controller="ParentCtrl">
 
-      <!-- Navigation -->
-      <nav class="navbar navbar-inverse" role="navigation">
-        <div class="container-fluid">
-          <!-- Brand and toggle get grouped for better mobile display -->
-          <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-              <span class="sr-only">Toggle navigation</span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-            </button>
-            <span class="navbar-brand">OnTab</span>
-          </div>
-
-          <!-- Collect the nav links, forms, and other content for toggling -->
-          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav">
-              <li ng-if="currentUser !== null" ng-class="dashboardActive"><a href="#">Dashboard</a></li>
-              <li ng-if="currentUser !== null" ng-class="exploreActive"><a href="/#/explore">Find Tasks</a></li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-              <li ng-cloak ng-if="currentUser !== null" class="ng-cloak dropdown">
-                <a href="" class="dropdown-toggle" data-toggle="dropdown">{{ currentUser.name }} ( {{ currentCircle }} )<b class="caret"></b></a>
-                <ul class="dropdown-menu">
-                  <li ng-show="circles.length > 0" class="divider"></li>
-                  <li ng-class="isActiveCircle(c)" ng-repeat="c in circles"><a href="" ng-click="setCurrentCircle(c)">{{ c }}</a></li>
-                  <li class="divider"></li>
-                  <li><a href="#" ng-click="inviteFriends()">Invite friends to {{ currentCircle }}</a></li>
-                  <li><a href="#" ng-click="logout()">Log out</a></li>
+        <!-- Navigation -->
+        <nav class="navbar navbar-inverse" role="navigation">
+          <div class="container-fluid">
+            <div class="navbar-header">
+              <button type="button" class="pull-left navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <span class="navbar-brand">OnTab</span>
+            </div>
+            <div class="collapse navbar-collapse">
+              <div class="side-nav">
+                <ul class="nav navbar-nav side-nav-menu">
+                  <li ng-if="currentUser !== null" ng-class="dashboardActive"><a href="#">Dashboard</a></li>
+                  <li ng-if="currentUser !== null" ng-class="exploreActive"><a href="/#/explore">Find Tasks</a></li>
                 </ul>
-              </li>
-            </ul>
-          </div><!-- /.navbar-collapse -->
-        </div><!-- /.container-fluid -->
-      </nav>
+                <ul class="nav navbar-nav navbar-right side-nav-menu">
+                  <li ng-cloak ng-if="currentUser !== null" class="ng-cloak dropdown">
+                    <a href="" class="dropdown-toggle" data-toggle="dropdown">{{ currentUser.name }} ( {{ currentCircle }} )<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                      <li ng-show="circles.length > 0" class="divider"></li>
+                      <li ng-class="isActiveCircle(c)" ng-repeat="c in circles"><a href="" ng-click="setCurrentCircle(c)">{{ c }}</a></li>
+                      <li class="divider"></li>
+                      <li><a href="#" ng-click="inviteFriends()">Invite friends to {{ currentCircle }}</a></li>
+                      <li><a href="#" ng-click="logout()">Log out</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <!--<div class="collapse navbar-collapse">
+              <ul class="nav navbar-nav side-nav">
+                <li ng-if="currentUser !== null" ng-class="dashboardActive"><a href="#">Dashboard</a></li>
+                <li ng-if="currentUser !== null" ng-class="exploreActive"><a href="/#/explore">Find Tasks</a></li>
+                <li ng-cloak ng-if="currentUser !== null" class="ng-cloak dropdown">
+                  <a href="" class="dropdown-toggle" data-toggle="dropdown">{{ currentUser.name }} ( {{ currentCircle }} )<b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                    <li ng-show="circles.length > 0" class="divider"></li>
+                    <li ng-class="isActiveCircle(c)" ng-repeat="c in circles"><a href="" ng-click="setCurrentCircle(c)">{{ c }}</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#" ng-click="inviteFriends()">Invite friends to {{ currentCircle }}</a></li>
+                    <li><a href="#" ng-click="logout()">Log out</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>-->
+          </div>
+        </nav>
 
-      <!-- Alerts -->
-      <toaster-container class="toaster-container"></toaster-container>
+        <div id="page-wrapper">
+          <!-- Alerts -->
+          <toaster-container class="toaster-container"></toaster-container>
 
-      <!-- Views -->
-      <!-- TODO: experience when user is NOT part of any circle -->
-      <div id="main-container" class="container-fluid" ng-view>
+          <!-- Views -->
+          <!-- TODO: experience when user is NOT part of any circle -->
+          <div id="main-container" class="container-fluid" ng-view>
+          </div>
+        </div>
       </div>
-    </div>
+    <div>
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
