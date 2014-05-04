@@ -8,7 +8,10 @@
 				"node_modules",
 				"config",
 				"bower_redist",
-				"redist"
+				"redist",
+				"public/css",
+				"public/js",
+				"public/template"
 			],
 			"follow_symlinks": true,
 			"path": "."
