@@ -6,7 +6,7 @@
     <h2>Available tasks</h2>
     <div ng-show="tasks.length === 0" class="alert alert-info">No tasks currently available, check back later!</div>
     <accordion close-others="false" ng-show="tasks.length > 0">
-		<accordion-group ng-repeat="task in tasks">
+		<accordion-group ng-repeat="task in tasks" id="{{task.id}}">
 			<accordion-heading>
 			  <span class="label label-info pull-left">{{ task.createdBy.name }}</span>
 			  <span class="iou-task-title">{{ task.title }}</span>

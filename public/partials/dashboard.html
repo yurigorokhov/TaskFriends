@@ -3,7 +3,7 @@
   <div class="col-md-12">
     <h2>Your TODO list</h2>
     <accordion close-others="false">
-      <accordion-group ng-repeat="task in todoTasks">
+      <accordion-group ng-repeat="task in todoTasks" id="{{task.id}}">
         <accordion-heading>
           <span class="label label-info pull-left">{{ task.createdBy.name }}</span>
           <span class="iou-task-title">{{ task.title }}</span>
@@ -28,7 +28,7 @@
 		<h2>Assets</h2>
     <div ng-show="assetTasks.length === 0" class="alert alert-info">Complete tasks to gain assets</div>
     <accordion close-others="false" ng-show="assetTasks.length > 0">
-      <accordion-group ng-repeat="task in assetTasks">
+      <accordion-group ng-repeat="task in assetTasks" id="{{task.id}}">
         <accordion-heading>
           <span class="label label-info pull-left">{{ task.createdBy.name }}</span>
           <span class="iou-task-title">{{ task.title }}</span>
@@ -49,7 +49,7 @@
   	<h2>Debts</h2>
     <div ng-show="assetTasks.length === 0" class="alert alert-info">Create tasks to accumulate debt</div>
     <accordion close-others="false" ng-show="assetTasks.length > 0">
-      <accordion-group ng-repeat="task in debtTasks">
+      <accordion-group ng-repeat="task in debtTasks" id="{{task.id}}">
         <accordion-heading>
           <span class="label label-info pull-left">{{ task.createdBy.name }}</span>
           <span class="iou-task-title">{{ task.title }}</span>
@@ -73,9 +73,9 @@
     <h2>My open tasks<button class="btn btn-primary pull-right" ng-click="open()">Create a task</button></h2>
     <div ng-show="myOpenTasks.length === 0" class="alert alert-info">Create tasks for others to do</div>
     <accordion close-others="false">
-      <accordion-group ng-repeat="task in myOpenTasks">
+      <accordion-group ng-repeat="task in myOpenTasks" id="{{task.id}}" is-open="task.isopen" ng-click="task.isopen = !task.isopen">
         <accordion-heading>
-          <span class="iou-task-title">{{ task.title }}</span>
+          <span class="iou-task-title" ng-click="task.isopen = !task.isopen">{{ task.title }}</span>
           <span ng-show="task.permissions.isInProgress" class="pull-right label label-success">In progress</span>
         </accordion-heading>
         {{ task.description }}

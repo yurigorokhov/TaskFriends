@@ -7,7 +7,8 @@ var iouApp = angular.module('iou', [
   'iouapi',
   'angularSpinner',
   'blockUI',
-  'toaster'
+  'toaster',
+  'duScroll'
 ]);
 
 //--- Routing ---

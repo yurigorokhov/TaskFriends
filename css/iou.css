@@ -11,6 +11,8 @@
 	padding-top: 50px;
 }
 
+/* Messages */
+
 @media (max-width:768px) {
 	.side-nav {
 		margin-left: -225px;
