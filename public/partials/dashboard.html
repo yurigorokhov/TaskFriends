@@ -7,6 +7,7 @@
         <accordion-heading>
           <span class="label label-info pull-left">{{ task.createdBy.name }}</span>
           <span class="iou-task-title">{{ task.title }}</span>
+          <span ng-show="task.permissions.isAwaitingApproval === true" class="label label-info pull-right">Awaiting approval</span>
         </accordion-heading>
         {{ task.description }}
         <h4>Prizes</h4>
@@ -15,6 +16,7 @@
             {{ prize.reward }}
           </li>
         </ul>
+        <button type="button" class="btn btn-primary" ng-click="completeTask(task)" ng-show="task.permissions.canComplete === true">Complete</button>
       </accordion-group>
     </accordion>
   </div>

@@ -7,7 +7,8 @@ var invitations = require('cloud/invitations.js');
 TaskState = {
 	OPEN: 100,
 	CLAIMED: 200,
-	FINISHED: 300	
+  PENDING_APPROVAL: 250,
+	FINISHED: 300
 };
 
 var Task = Parse.Object.extend('Task');
@@ -65,14 +66,20 @@ Parse.Cloud.beforeSave('Task', function(request, response) {
   			  			}
   			  			break;
   			  		case TaskState.CLAIMED:
-  			  			if(newState !== TaskState.FINISHED) {
+  			  			if(newState !== TaskState.PENDING_APPROVAL) {
   			  				response.error('Invalid task state transition');
   			  				return;
-  			  			} else if(request.object.get('createdBy').id !== request.user.id) {
-  			  				response.error('Only the owner can finish their task, you must request permission');
-  			  				return;
+  			  			} else if(request.object.get('claimedBy').id !== request.user.id) {
+  			  				resonse.error('You must claim the task to be able to complete it.');
+                  return;
   			  			}
   			  			break;
+              case TaskState.PENDING_APPROVAL:
+                if(request.object.get('createdBy').id !== request.user.id) {
+                  response.error('Only the owner can finish their task, you must request permission');
+                  return;
+                }
+                break;
   			  		case TaskState.FINISHED:
   			  			response.error('Invalid task state transition');
   			  			return;
@@ -138,7 +145,7 @@ Parse.Cloud.define('GetDashboardTasks', function(request, response) {
   todoQuery.equalTo('circle', currentCircle);
   todoQuery.include('createdBy');
   todoQuery.equalTo('claimedBy', request.user);
-  todoQuery.equalTo('state', TaskState.CLAIMED);
+  todoQuery.containedIn('state', [TaskState.PENDING_APPROVAL, TaskState.CLAIMED]);
 
   // assets
   var assetQuery = new Parse.Query('Task');

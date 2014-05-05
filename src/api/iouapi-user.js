@@ -4,7 +4,7 @@ angular.module('iouapi-user', [])
 
       //--- Methods ---
       _toUser: function(parseObj) {
-        return parseObj === null ? null : {
+        return !parseObj ? null : {
           name: parseObj.attributes.name,
           profilepic: parseObj.attributes.profilepic,
           email: parseObj.attributes.email,

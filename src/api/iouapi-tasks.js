@@ -5,6 +5,7 @@ angular.module('iouapi-tasks', ['iouapi-user'])
     var TaskState = {
       OPEN: 100,
       CLAIMED: 200,
+      PENDING_APPROVAL: 250,
       FINISHED: 300 
     };
     return {
@@ -21,7 +22,7 @@ angular.module('iouapi-tasks', ['iouapi-user'])
           description: parseObj.attributes.description,
           prizes: parseObj.attributes.prizes,
           createdBy: $user._toUser(parseObj.attributes.createdBy),
-          claimedBy: parseObj.attributes.claimedBy,
+          claimedBy: $user._toUser(parseObj.attributes.claimedBy),
           state: parseObj.attributes.state,
           id: parseObj.id,
           _parseObj: parseObj
@@ -32,7 +33,9 @@ angular.module('iouapi-tasks', ['iouapi-user'])
         return {
           canDelete: (task.createdBy.id === user.id && task.state === TaskState.OPEN),
           canClaim: (task.createdBy.id !== user.id && task.state === TaskState.OPEN),
-          isInProgress: (task.state === TaskState.CLAIMED)
+          isInProgress: (task.state === TaskState.CLAIMED),
+          canComplete: (task.claimedBy !== null && task.claimedBy.id === user.id && task.state === TaskState.CLAIMED),
+          isAwaitingApproval: (task.state === TaskState.PENDING_APPROVAL)
         };
       },
 
@@ -60,6 +63,7 @@ angular.module('iouapi-tasks', ['iouapi-user'])
         // fetch prizes
         var query = new Parse.Query(self._task);
         query.include('createdBy');
+        query.include('claimedBy');
         if('createdByUser' in options) {
           query.equalTo('createdBy', options.createdByUser._parseObj);
           options.state = options.state || TaskState.CLAIMED;
@@ -141,6 +145,21 @@ angular.module('iouapi-tasks', ['iouapi-user'])
         var self = this;
         var deferred = $q.defer();
         task._parseObj.set('state', TaskState.CLAIMED);
+        task._parseObj.save(null, {
+          success: function(result) {
+            deferred.resolve();
+          },
+          error: function(task, error) {
+            deferred.reject(error);
+          }
+        });
+        return deferred.promise;
+      },
+
+      requestCompletion: function(task) {
+        var self = this;
+        var deferred = $q.defer();
+        task._parseObj.set('state', TaskState.PENDING_APPROVAL);
         task._parseObj.save(null, {
           success: function(result) {
             deferred.resolve();

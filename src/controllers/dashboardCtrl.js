@@ -40,6 +40,21 @@ angular.module('controllers')
         });
       };
 
+      $scope.completeTask = function(task) {
+        tasks.requestCompletion(task).then(function() {
+          toaster.pop('success', 'Success', 'Your task has been submitted to the creator for review');
+          $scope.todoTasks = _($scope.todoTasks)
+            .map(function(t) {
+              if(t.id === task.id) {
+                t.state = tasks.TaskState.PENDING_APPROVAL;
+              }
+              return t;
+            });
+        }, function() {
+          toaster.pop('error', 'Error', 'There was an error completing the task');
+        });
+      };
+
       // new task modal
       $scope.open = function () {
         var modalInstance = $modal.open({

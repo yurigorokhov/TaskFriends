@@ -82,7 +82,6 @@
 
       // Hide navigation on click elsewhere
       $(document).on('click', function(e) {
-        console.log('CLICK');
         if($('.navbar-toggle').is(':visible') && $(e.target).closest('.navbar-collapse').length === 0) {
             $('.navbar-collapse').collapse('hide');
             e.preventDefault();
