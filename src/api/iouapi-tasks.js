@@ -32,6 +32,7 @@ angular.module('iouapi-tasks', ['iouapi-user'])
       _getPermissions: function(task, user) {
         return {
           canDelete: (task.createdBy.id === user.id && task.state === TaskState.OPEN),
+          canEdit: (task.createdBy.id === user.id && task.state === TaskState.OPEN),
           canClaim: (task.createdBy.id !== user.id && task.state === TaskState.OPEN),
           isInProgress: (task.state === TaskState.CLAIMED),
           canComplete: (task.claimedBy !== null && task.claimedBy.id === user.id && task.state === TaskState.CLAIMED),
@@ -141,13 +142,30 @@ angular.module('iouapi-tasks', ['iouapi-user'])
         return deferred.promise;
       },
 
+      save: function(task, data) {
+        var self = this;
+        var deferred = $q.defer();
+        task._parseObj.set('title', data.title);
+        task._parseObj.set('description', data.description);
+        task._parseObj.set('prizes', { reward: data.reward });
+        task._parseObj.save(null, {
+          success: function(result) {
+            deferred.resolve(self._toTask(result));
+          },
+          error: function(task, error) {
+            deferred.reject(error);
+          }
+        });
+        return deferred.promise;
+      },
+
       claimTask: function(task) {
         var self = this;
         var deferred = $q.defer();
         task._parseObj.set('state', TaskState.CLAIMED);
         task._parseObj.save(null, {
           success: function(result) {
-            deferred.resolve();
+            deferred.resolve(self._toTask(result));
           },
           error: function(task, error) {
             deferred.reject(error);
@@ -162,7 +180,22 @@ angular.module('iouapi-tasks', ['iouapi-user'])
         task._parseObj.set('state', TaskState.PENDING_APPROVAL);
         task._parseObj.save(null, {
           success: function(result) {
-            deferred.resolve();
+            deferred.resolve(self._toTask(result));
+          },
+          error: function(task, error) {
+            deferred.reject(error);
+          }
+        });
+        return deferred.promise;
+      },
+
+      confirmCompletion: function(task) {
+        var self = this;
+        var deferred = $q.defer();
+        task._parseObj.set('state', TaskState.FINISHED);
+        task._parseObj.save(null, {
+          success: function(result) {
+            deferred.resolve(self._toTask(result));
           },
           error: function(task, error) {
             deferred.reject(error);

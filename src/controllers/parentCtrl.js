@@ -1,6 +1,6 @@
 angular.module('controllers')
-  .controller('ParentCtrl', ['$scope', '$location', 'user', 'UserService', 'toaster', 'blockUI', '$modal', 'tasks',
-    function ($scope, $location, user, UserService, toaster, $blockUI, $modal, tasks) {
+  .controller('ParentCtrl', ['$scope', '$location', 'user', 'UserService', 'MessageService', 'toaster', 'blockUI', '$modal', 'tasks',
+    function ($scope, $location, user, UserService, MessageService, toaster, $blockUI, $modal, tasks) {
       $scope.currentUser = null;
       $scope.circles = null;
       $scope.dashboardActive = '';
@@ -12,18 +12,9 @@ angular.module('controllers')
       });
       UserService.observeCircleChange(function(circle) {
         $scope.currentCircle = circle;
-
-        // Find tasks that need action
-        tasks.get({
-          createdByUser: UserService.User,
-          state: tasks.TaskState.PENDING_APPROVAL
-        }, circle).then(function(tasks) {
-          $scope.messages = _(tasks).map(function(t) {
-            return { task: t };
-          });
-        }, function() {
-          toaster.pop('error', 'Error', 'There was an error loading your messages');
-        });
+      });
+      MessageService.observe(function(messages) {
+        $scope.messages = messages;
       });
       $scope.$on('$locationChangeSuccess', function(e) {
         switch($location.url()) {
@@ -42,8 +33,25 @@ angular.module('controllers')
           UserService.setUser(currentUser);
         }
       });
-      $scope.navigateToTask = function(task) {
-        //TODO: approve task workflow
+      $scope.processMessage = function(message) {
+        var modalInstance = $modal.open({
+          templateUrl: 'partials/createatask.html',
+          controller: 'NewTaskModal',
+          resolve: {
+            items: function() {
+              return {
+                state: 'confirmCompletion',
+                task: message.task,
+                processTask: function(newTask) {
+                  MessageService.complete(message);
+                  $scope.$broadcast('TaskUpdate', newTask);
+                }
+              };
+            }
+          }
+        });
+        modalInstance.result.then(function (data) {
+        }, function () { });
       };
       $scope.logout = function() {
         UserService.logOut();

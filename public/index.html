@@ -54,7 +54,7 @@
                     <ul class="dropdown-menu">
                       <li class="dropdown-header">{{ messages.length }} Message(s)</li>
                       <li ng-repeat="message in messages" class="message-preview">
-                        <a href="" ng-click="navigateToTask(message.task)">
+                        <a href="" ng-click="processMessage(message)">
                           <span class="label label-info">{{ message.task.claimedBy.name }}</span>
                           <span class="message">Has finished a task that needs your approval</span>
                         </a>

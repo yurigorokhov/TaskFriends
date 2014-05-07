@@ -1,25 +1,12 @@
 angular.module('controllers')
   .controller('DashboardCtrl', ['$scope', 'tasks', 'blockUI', 'UserService', '$q', 'toaster', '$modal',
     function ($scope, tasks, $blockUI, UserService, $q, toaster, $modal) {
+      var self = this;
     	$scope.tasks = [];
       $scope.myOpenTasks = [];
       $scope.todoTasks = [];
       $scope.debtTasks = [];
       $scope.assetTasks = [];
-      $scope.$watch('tasks', function(newVal) {
-        $scope.myOpenTasks = _(newVal).filter(function(t) {
-          return t.type === 'myopen';
-        });
-        $scope.todoTasks = _(newVal).filter(function(t) {
-          return t.type === 'todo';
-        });
-        $scope.debtTasks = _(newVal).filter(function(t) {
-          return t.type === 'debt';
-        });
-        $scope.assetTasks = _(newVal).filter(function(t) {
-          return t.type === 'asset';
-        });
-      });
       var refreshDasboard = function() {
         $blockUI.start();
         tasks.getDashboardTasks(UserService.User).then(
@@ -46,6 +33,24 @@ angular.module('controllers')
           }
         );
       };
+      $scope.$on('TaskUpdate', function(e, task) {
+        console.log('refreshing');
+        refreshDasboard();
+      });
+      $scope.$watch('tasks', function(newVal) {
+        $scope.myOpenTasks = _(newVal).filter(function(t) {
+          return t.type === 'myopen';
+        });
+        $scope.todoTasks = _(newVal).filter(function(t) {
+          return t.type === 'todo';
+        });
+        $scope.debtTasks = _(newVal).filter(function(t) {
+          return t.type === 'debt';
+        });
+        $scope.assetTasks = _(newVal).filter(function(t) {
+          return t.type === 'asset';
+        });
+      });
       if(UserService.User.currentCircle) {
         refreshDasboard();
       }
@@ -66,18 +71,44 @@ angular.module('controllers')
       };
 
       $scope.completeTask = function(task) {
-        tasks.requestCompletion(task).then(function() {
+        tasks.requestCompletion(task).then(function(newTask) {
           toaster.pop('success', 'Success', 'Your task has been submitted to the creator for review');
           $scope.tasks = _($scope.tasks)
             .map(function(t) {
-              if(t.id === task.id) {
-                t.state = tasks.TaskState.PENDING_APPROVAL;
+              if(t.id === newTask.id) {
+                newTask.type = t.type;
               }
-              return t;
+              return tasks.populatePermissionsForTask(newTask, UserService.User);
             });
         }, function() {
           toaster.pop('error', 'Error', 'There was an error completing the task');
         });
+      };
+
+      // edit task modal
+      $scope.editTask = function (t) {
+        var modalInstance = $modal.open({
+          templateUrl: 'partials/createatask.html',
+          controller: 'NewTaskModal',
+          resolve: {
+            items: function() {
+              return {
+                state: 'edit',
+                task: t,
+                processTask: function(newTask) {
+                  $scope.myOpenTasks = _($scope.myOpenTasks).map(function(ta) {
+                    if(ta.id === newTask.id) {
+                      ta = newTask;
+                    }
+                    return tasks.populatePermissionsForTask(ta, UserService.User);
+                  });
+                }
+              };
+            }
+          }
+        });
+        modalInstance.result.then(function (data) {
+        }, function () { });
       };
 
       // new task modal
@@ -88,7 +119,7 @@ angular.module('controllers')
           resolve: {
             items: function() {
               return {
-                addTask: function(newTask) {
+                processTask: function(newTask) {
                   $scope.myOpenTasks.push(tasks.populatePermissionsForTask(newTask, UserService.User));
                 }
               };

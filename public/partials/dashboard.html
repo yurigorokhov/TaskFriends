@@ -16,13 +16,14 @@
             {{ prize.reward }}
           </li>
         </ul>
-        <button type="button" class="btn btn-primary" ng-click="completeTask(task)" ng-show="task.permissions.canComplete === true">Complete</button>
+        <button type="button" class="btn btn-primary" ng-click="completeTask(task)" ng-show="task.permissions.canComplete === true">I am done!</button>
       </accordion-group>
     </accordion>
   </div>
 </div>
 
 <div class="row">
+  
   <!-- Assets -->
   <div class="col-md-6">
 		<h2>Assets</h2>
@@ -46,15 +47,14 @@
 
   <!-- Debts -->
   <div class="col-md-6">
-  	<h2>Debts</h2>
-    <div ng-show="assetTasks.length === 0" class="alert alert-info">Create tasks to accumulate debt</div>
-    <accordion close-others="false" ng-show="assetTasks.length > 0">
+    <h2>Debts</h2>
+    <div ng-show="debtTasks.length === 0" class="alert alert-info">Complete tasks to gain assets</div>
+    <accordion close-others="false" ng-show="debtTasks.length > 0">
       <accordion-group ng-repeat="task in debtTasks" id="{{task.id}}">
         <accordion-heading>
-          <span class="label label-info pull-left">{{ task.createdBy.name }}</span>
+          <span class="label label-info pull-left">{{ task.claimedBy.name }}</span>
           <span class="iou-task-title">{{ task.title }}</span>
         </accordion-heading>
-        <ng-include src="'/partials/tasktemplate.html'"></ng-include>
         {{ task.description }}
         <h4>Prizes</h4>
         <ul class="list-group">
@@ -66,7 +66,6 @@
     </accordion>
   </div>
 </div>
-
 <div class="row">
   <!-- My open tasks -->  
   <div class="col-md-12">
@@ -85,6 +84,7 @@
             {{ prize.reward }}
           </li>
         </ul>
+        <button type="button" class="btn btn-primary" ng-click="editTask(task)" ng-show="task.permissions.canEdit === true">Edit</button>
         <button type="button" class="btn btn-danger" ng-click="deleteTask(task)" ng-show="task.permissions.canDelete === true">Delete</button>
       </accordion-group>
     </accordion>

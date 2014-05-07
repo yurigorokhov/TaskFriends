@@ -1,12 +1,12 @@
 <div class="modal-header">
-    <h3>Create a task</h3>
+    <h3>{{ dialog.title }}</h3>
 </div>
 <div class="modal-body">
   <form class="form-horizontal css-form" role="form" name="form" novalidate>
       <div class="form-group">
         <label for="tasktitle" class="col-sm-2 control-label">Title</label>
         <div class="col-sm-10">
-          <input class="form-control" name="uTitle" id="tasktitle" placeholder="Title" ng-model="task.title" required/>
+          <input ng-disabled="dialog.inputsDisabled" class="form-control" name="uTitle" id="tasktitle" placeholder="Title" ng-model="task.title" required/>
           <div ng-show="form.uTitle.$dirty">
             <span ng-show="form.uTitle.$error.required">You must specify a title</span>
           </div>
@@ -15,16 +15,13 @@
       <div class="form-group">
         <label class="col-sm-2 control-label">Description</label>
         <div class="col-sm-10">
-          <textarea class="form-control" rows="3" placeholder="Description" ng-model="task.description" name="uDescription" required></textarea>
-          <div ng-show="form.uDescription.$dirty">
-            <span ng-show="form.uDescription.$error.required">You must specify a description</span>
-          </div>
+          <textarea ng-disabled="dialog.inputsDisabled" class="form-control" rows="3" placeholder="Description" ng-model="task.description" name="uDescription"></textarea>
         </div>
       </div>
       <div class="form-group">
         <label for="reward" class="col-sm-2 control-label">Reward</label>
         <div class="col-sm-10">
-          <input class="form-control" name="uReward" id="reward" placeholder="e.g. Beer, Lunch, ..." ng-model="task.reward" required/>
+          <input ng-disabled="dialog.inputsDisabled" class="form-control" name="uReward" id="reward" placeholder="e.g. Beer, Lunch, ..." ng-model="task.reward" required/>
           <div ng-show="form.uReward.$dirty">
             <span ng-show="form.uReward.$error.required">You must specify a reward</span>
           </div>
@@ -34,6 +31,6 @@
     </form>
 </div>
 <div class="modal-footer">
-    <button class="btn btn-primary" ng-disabled="form.$invalid" ng-click="create()">Create</button>
-    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+    <button class="btn btn-primary" ng-disabled="form.$invalid" ng-click="processTask(task)">{{ dialog.buttonOk }}</button>
+    <button class="btn btn-warning" ng-click="cancel()">{{ dialog.buttonCancel }}</button>
 </div>
