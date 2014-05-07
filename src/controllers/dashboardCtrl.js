@@ -8,6 +8,9 @@ angular.module('controllers')
       $scope.debtTasks = [];
       $scope.assetTasks = [];
       var refreshDasboard = function() {
+        if(UserService.User === null) {
+          return;
+        }
         $blockUI.start();
         tasks.getDashboardTasks(UserService.User).then(
           function(res) {
@@ -34,7 +37,6 @@ angular.module('controllers')
         );
       };
       $scope.$on('TaskUpdate', function(e, task) {
-        console.log('refreshing');
         refreshDasboard();
       });
       $scope.$watch('tasks', function(newVal) {
@@ -75,10 +77,12 @@ angular.module('controllers')
           toaster.pop('success', 'Success', 'Your task has been submitted to the creator for review');
           $scope.tasks = _($scope.tasks)
             .map(function(t) {
-              if(t.id === newTask.id) {
-                newTask.type = t.type;
+              var currTask = t;
+              if(currTask.id === newTask.id) {
+                currTask = newTask;
+                currTask.type = t.type;
               }
-              return tasks.populatePermissionsForTask(newTask, UserService.User);
+              return tasks.populatePermissionsForTask(currTask, UserService.User);
             });
         }, function() {
           toaster.pop('error', 'Error', 'There was an error completing the task');

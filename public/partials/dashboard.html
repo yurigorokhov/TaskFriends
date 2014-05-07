@@ -7,8 +7,8 @@
         <accordion-heading>
           <span class="label label-info pull-left">{{ task.createdBy.name }}</span>
           <span class="iou-task-title">{{ task.title }}</span>
-          <span ng-show="task.permissions.isAwaitingApproval === true" class="label label-info pull-right">Awaiting approval</span>
         </accordion-heading>
+        <span ng-show="task.permissions.isAwaitingApproval === true" class="label label-info pull-right">Awaiting approval</span>
         {{ task.description }}
         <h4>Prizes</h4>
         <ul class="list-group">
@@ -75,8 +75,8 @@
       <accordion-group ng-repeat="task in myOpenTasks" id="{{task.id}}" is-open="task.isopen" ng-click="task.isopen = !task.isopen">
         <accordion-heading>
           <span class="iou-task-title" ng-click="task.isopen = !task.isopen">{{ task.title }}</span>
-          <span ng-show="task.permissions.isInProgress" class="pull-right label label-success">In progress</span>
         </accordion-heading>
+        <span class="pull-right ">In Progess by <span ng-show="task.permissions.isInProgress" class="label label-success">{{ task.claimedBy.name }}</span></span>
         {{ task.description }}
         <h4>Prizes</h4>
         <ul class="list-group">
