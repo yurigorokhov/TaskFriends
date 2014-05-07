@@ -24,7 +24,7 @@ iouApp.config(['$routeProvider', 'blockUIConfigProvider',
         var deferred = $q.defer();
         if(UserService.User === null) {
           if(!isAuth) {
-            $location.path('/login');
+            $location.path('/landing');
             deferred.reject();
           } else {
             deferred.resolve();
@@ -43,9 +43,9 @@ iouApp.config(['$routeProvider', 'blockUIConfigProvider',
 
     // Routing
     $routeProvider.
-      when('/login', {
-        templateUrl: 'partials/login.html',
-        controller: 'LoginCtrl',
+      when('/landing', {
+        templateUrl: 'partials/landing.html',
+        controller: 'LandingCtrl',
         resolve: {
           authenticate: authFunc(true)
         }

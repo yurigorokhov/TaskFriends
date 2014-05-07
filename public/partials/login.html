@@ -1,44 +1,61 @@
-<div class="jumbotron">
-  <h1>TaskFriends</h1>
-  <div class="row align-center">
-    <div class="col-md-6">
-        <form novalidate name="loginForm" class="form-signin">
-          <h2 class="form-signin-heading">Sign in</h2>
-          <div class="form-group">
-            <input name="email" name="email" type="email" class="form-control" ng-model="loginData.email" placeholder="Email address" required>
-            <span class="error" ng-show="loginForm.email.$error.email">Please enter a valid email.</span>
-          </div>
-          <div class="form-group">
-            <input type="password" class="form-control" ng-model="loginData.password" placeholder="Password" required>
-          </div>
-          <button class="btn btn-primary" type="submit" ng-click="login(loginData)">Sign in</button>
-          <!--<a class="forgot-password-link" align=center href="/#/resetpassword">Forgot Password?</a>-->
-        </form>
-    </div>
-
-    <div class="col-md-6">
-      <form name="registerForm">
-          <h2 class="form-signin-heading">Register</h2>
-          <div class="form-group">
-              <input type="text" class="form-control" ng-model="registerData.displayname" placeholder="Name" required>
-          </div>
-          <div class="form-group">
-              <input name="email" type="email" class="form-control" ng-model="registerData.email" placeholder="Email address" required>
-              <span class="error" ng-show="registerForm.email.$error.email">Please enter a valid email.</span>
-          </div>
-
-          <div class="form-group">
-              <input type="password" class="form-control" ng-model="registerData.password" placeholder="Password" required>
-              <span class="error" ng-show="registerData.password.length < 4">Password should be at least 4 characters long.</span>
-          </div>
-          <div class="form-group">
-            <input type="password" class="form-control" ng-model="registerData.passwordverify" placeholder="Verify Password" required>
-            <span class="error" ng-show="registerData.passwordverify.length > 0 && registerData.password != registerData.passwordverify">Passwords do not match.</span>
-          </div>
-          <button class="btn btn-primary" type="submit" ng-click="register(registerData)">Register</button>
+<!-- Login -->
+<div ng-show="!mode">
+  <div class="modal-header">
+      <button type="button" class="close" ng-click="cancel()" aria-hidden="true">×</button>
+      <h1 class="text-center">Login</h1>
+  </div>
+  <div class="modal-body">
+      <form name="loginForm" class="form col-md-12 center-block" ng-submit="login(loginData)">
+        <div class="form-group">
+          <input type="email" name="email" class="form-control input-lg" placeholder="Email" ng-model="loginData.email" required>
+        </div>
+        <div class="form-group">
+          <input type="password" class="form-control input-lg" placeholder="Password" ng-model="loginData.password" required>
+        </div>
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary btn-lg btn-block">Sign In</button>
+          <span><a href="" ng-click="mode=true">Register</a></span>
+        </div>
       </form>
-    </div>
+  </div>
+  <div class="modal-footer">
+      <div class="col-md-12">
+      <button class="btn" ng-click="cancel()" aria-hidden="true">Cancel</button>
+    </div>  
   </div>
 </div>
 
-<!-- <p><a class="btn btn-primary btn-lg" ng-click="facebookLogin()" role="button">Facebook login</a></p> -->
+<!-- Register -->
+<div ng-show="mode">
+  <div class="modal-header">
+      <button type="button" class="close" ng-click="cancel()" aria-hidden="true">×</button>
+      <h1 class="text-center">Register</h1>
+  </div>
+  <div class="modal-body">
+    <form name="registerForm" ng-submit="register(registerData)">
+        <div class="form-group">
+            <input type="text" class="form-control input-lg" ng-model="registerData.displayname" placeholder="Name" required>
+        </div>
+        <div class="form-group">
+            <input name="email" type="email" class="form-control input-lg" ng-model="registerData.email" placeholder="Email address" required>
+            <span class="error" ng-show="registerForm.email.$error.email">Please enter a valid email.</span>
+        </div>
+
+        <div class="form-group">
+            <input type="password" class="form-control input-lg" ng-model="registerData.password" placeholder="Password" required>
+            <span class="error" ng-show="registerData.password.length < 4">Password should be at least 4 characters long.</span>
+        </div>
+        <div class="form-group">
+          <input type="password" class="form-control input-lg" ng-model="registerData.passwordverify" placeholder="Verify Password" required>
+          <span class="error" ng-show="registerData.passwordverify.length > 0 && registerData.password != registerData.passwordverify">Passwords do not match.</span>
+        </div>
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Register</button>
+        <span><a href="" ng-click="mode=false">Back to login</a></span>
+    </form>
+  </div>
+  <div class="modal-footer">
+      <div class="col-md-12">
+      <button class="btn" ng-click="cancel()" aria-hidden="true">Cancel</button>
+    </div>  
+  </div>
+</div>

@@ -33,7 +33,7 @@ exports.createInvitationAndSendEmail = function(email, user, circle) {
     success: function() {
       Mandrill.sendEmail({
         message: {
-          text: 'Please follow the following link: https://taskfriends.parseapp.com/#/login?invite=' + g,
+          text: 'Please follow the following link: https://taskfriends.parseapp.com/#/landing?invite=' + g,
           subject: 'You have been invited to TaskFriends',
           from_email: "admin@taskfriends.parseapp.com",
           from_name: "TaskFriends",

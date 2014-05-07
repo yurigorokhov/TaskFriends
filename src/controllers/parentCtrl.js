@@ -55,7 +55,7 @@ angular.module('controllers')
       };
       $scope.logout = function() {
         UserService.logOut();
-        $location.path('/login');
+        $location.path('/landing');
       };
       $scope.isActiveCircle = function(c) {
         return c === $scope.currentCircle ? 'active' : '';
