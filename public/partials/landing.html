@@ -1,2 +1,43 @@
-<h1>Welcome to TaskFriends</h1>
-<button ng-click="startLogin()">LogIn</button>
+<div class="landing-container">
+      <div class="row">
+        <div class="col-lg-12 text-center v-center">
+          <h1>TaskFriends</h1>
+          <p class="lead">Task your friends</p>
+          <br>
+          <button ng-click="startLogin()" class="btn btn-lg btn-primary">Login</button>
+          <button ng-show="registrationEnabled" ng-click="startLogin(true)" class="btn btn-md btn-warning">Register</button>
+          <br><br><br>
+          <p ng-show="!registrationEnabled" class="lead">Registration is currently disabled while TaskFriends is in Beta</p>
+        </div>
+      </div> 
+</div> <!-- /container full -->
+<div class="container">
+  	<hr>
+  	<div class="row">
+        <div class="col-md-4">
+          <div class="panel panel-default">
+            <div class="panel-heading"><h3>Need Help?</h3></div>
+            <div class="panel-body">
+              <img src="/images/needhelp.png" height="160px" width="260px"></img>
+            </div>
+          </div>
+        </div>
+      	<div class="col-md-4">
+        	<div class="panel panel-default">
+            <div class="panel-heading"><h3>Ask your friends!</h3></div>
+            <div class="panel-body">
+              <img src="/images/askfriends.png" height="160px" width="260px"></img>
+            </div>
+          </div>
+        </div>
+      	<div class="col-md-4">
+        	<div class="panel panel-default">
+            <div class="panel-heading"><h3>Return the favor</h3></div>
+            <div class="panel-body">
+              <img src="/images/returnthefavor.png" height="160px" width="260px"></img>
+            </div>
+          </div>
+        </div>
+    </div>
+</div>
+

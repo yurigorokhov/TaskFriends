@@ -14,13 +14,12 @@
         </div>
         <div class="form-group">
           <button type="submit" class="btn btn-primary btn-lg btn-block">Sign In</button>
-          <span><a href="" ng-click="mode=true">Register</a></span>
         </div>
       </form>
   </div>
   <div class="modal-footer">
-      <div class="col-md-12">
-      <button class="btn" ng-click="cancel()" aria-hidden="true">Cancel</button>
+    <div class="col-md-12">
+      <button class="btn btn-warning" ng-click="cancel()" aria-hidden="true">Cancel</button>
     </div>  
   </div>
 </div>
@@ -50,12 +49,11 @@
           <span class="error" ng-show="registerData.passwordverify.length > 0 && registerData.password != registerData.passwordverify">Passwords do not match.</span>
         </div>
         <button class="btn btn-primary btn-lg btn-block" type="submit">Register</button>
-        <span><a href="" ng-click="mode=false">Back to login</a></span>
     </form>
   </div>
   <div class="modal-footer">
       <div class="col-md-12">
-      <button class="btn" ng-click="cancel()" aria-hidden="true">Cancel</button>
+      <button class="btn btn-warning" ng-click="cancel()" aria-hidden="true">Cancel</button>
     </div>  
   </div>
 </div>

@@ -29,7 +29,7 @@
       <div ng-controller="ParentCtrl">
 
         <!-- Navigation -->
-        <nav class="navbar navbar-inverse" role="navigation">
+        <nav ng-show="isLandingPage !== true" class="navbar navbar-inverse" role="navigation">
           <div class="container-fluid">
             <div class="navbar-header">
               <button type="button" class="pull-left navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -84,7 +84,7 @@
 
           <!-- Views -->
           <!-- TODO: experience when user is NOT part of any circle -->
-          <div id="main-container" class="container-fluid" ng-view>
+          <div ng-class="isLandingPage !== true ? 'container-fluid' : ''" id="main-container" ng-view>
           </div>
         </div>
       </div>

@@ -31,6 +31,7 @@ angular.module('iouapi-tasks', ['iouapi-user'])
 
       _getPermissions: function(task, user) {
         return {
+          myPrize: task.prizes[user.id],
           canDelete: (task.createdBy.id === user.id && task.state === TaskState.OPEN),
           canEdit: (task.createdBy.id === user.id && task.state === TaskState.OPEN),
           canClaim: (task.createdBy.id !== user.id && task.state === TaskState.OPEN),

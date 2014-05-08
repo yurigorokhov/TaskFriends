@@ -1,6 +1,9 @@
 angular.module('controllers')
   .controller('ParentCtrl', ['$scope', '$location', 'user', 'UserService', 'MessageService', 'toaster', 'blockUI', '$modal', 'tasks',
     function ($scope, $location, user, UserService, MessageService, toaster, $blockUI, $modal, tasks) {
+      $scope.$on('$routeChangeSuccess', function () {
+        $scope.isLandingPage = $location.path().indexOf('/landing') === 0;
+      });
       $scope.currentUser = null;
       $scope.circles = null;
       $scope.dashboardActive = '';

@@ -1,6 +1,7 @@
 angular.module('controllers')
-  .controller('LoginCtrl', ['$scope', '$location', 'usSpinnerService', 'user', 'blockUI', 'UserService', 'toaster', '$modalInstance',
-    function($scope, $location, usSpinnerService, $user, $blockUI, UserService, toaster, $modalInstance) {
+  .controller('LoginCtrl', ['$scope', '$location', 'usSpinnerService', 'user', 'blockUI', 'UserService', 'toaster', '$modalInstance', 'items',
+    function($scope, $location, usSpinnerService, $user, $blockUI, UserService, toaster, $modalInstance, items) {
+      $scope.mode = (items.mode === true);
       $scope.cancel = function () {
         $modalInstance.dismiss('cancel');
       };
