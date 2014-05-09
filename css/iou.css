@@ -9,7 +9,7 @@
   margin: 0 auto;
   width: 100%;
   min-height:100%;
-  background-color:#110022;
+  background-color:#272524;
   color:#eee;
   overflow:hidden;
 }
@@ -24,6 +24,13 @@
 }
 
 /* Dashboard */
+.icon-coin-asset {
+	color: green;
+}
+
+.icon-coin-debt {
+	color: red;
+}
 
 /* Tasks */
 .iou-task-title {

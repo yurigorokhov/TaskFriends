@@ -9,6 +9,7 @@ angular.module('controllers')
         $blockUI.start();
         $user.login(userData.email, userData.password).then(
           function(newUser) {
+            toaster.clear();
             UserService.setUser(newUser);
             $modalInstance.dismiss('cancel');
             $location.path('/dashboard');
@@ -23,6 +24,7 @@ angular.module('controllers')
         $blockUI.start();
         $user.register(userData).then(
           function(newUser) {
+            toaster.clear();
             UserService.setUser(newUser);
             $modalInstance.dismiss('cancel');
             $location.path('/dashboard');

@@ -6,21 +6,23 @@
     <h2>Available tasks</h2>
     <div ng-show="tasks.length === 0" class="alert alert-info">No tasks currently available, check back later!</div>
     <accordion close-others="false" ng-show="tasks.length > 0">
-		<accordion-group ng-repeat="task in tasks" id="{{task.id}}">
-			<accordion-heading>
-			  <span class="label label-info pull-left">{{ task.createdBy.name }}</span>
-			  <span class="iou-task-title">{{ task.title }}</span>
-			</accordion-heading>
-    		{{ task.description }}
-	        <br><br>
-	        <h4>Rewards</h4>
-			<ul class="list-group">
-			  <li class="list-group-item" ng-repeat="prize in task.prizes">
-			  	{{ prize.reward }}
-			  </li>
-			</ul>
-			<button type="button" class="btn btn-primary" ng-click="claim(task)" ng-show="task.permissions.canClaim === true">Claim</button>
-    	</accordion-group>
-	</accordion>
+    <accordion-group ng-repeat="task in tasks" id="{{task.id}}">
+      <accordion-heading>
+        <div>
+          <span class="label label-info pull-left">{{ task.createdBy.name }}</span>
+          <span class="iou-task-title">{{ task.title }}</span>
+        </div>
+      </accordion-heading>
+        <h4 ng-show="task.description.length > 0"><strong>Description</strong></h4>
+          <p>{{ task.description }}</p>
+          <h4><strong>Rewards</strong></h4>
+      <ul class="list-group">
+        <li class="list-group-item" ng-repeat="prize in task.prizes">
+          {{ prize.reward }}
+        </li>
+      </ul>
+      <button type="button" class="btn btn-primary" ng-click="claim(task)" ng-show="task.permissions.canClaim === true">Claim</button>
+      </accordion-group>
+  </accordion>
   </div>
 </div>
