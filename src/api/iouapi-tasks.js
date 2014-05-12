@@ -6,7 +6,8 @@ angular.module('iouapi-tasks', ['iouapi-user'])
       OPEN: 100,
       CLAIMED: 200,
       PENDING_APPROVAL: 250,
-      FINISHED: 300 
+      FINISHED: 300,
+      REWARD_RECEIVED: 400
     };
     return {
 
@@ -37,6 +38,7 @@ angular.module('iouapi-tasks', ['iouapi-user'])
           canClaim: (task.createdBy.id !== user.id && task.state === TaskState.OPEN),
           isInProgress: (task.state === TaskState.CLAIMED),
           canComplete: (task.claimedBy !== null && task.claimedBy.id === user.id && task.state === TaskState.CLAIMED),
+          canConfirmReward: (task.state === TaskState.FINISHED && task.claimedBy !== null && task.claimedBy.id === user.id),
           isAwaitingApproval: (task.state === TaskState.PENDING_APPROVAL)
         };
       },
@@ -194,6 +196,21 @@ angular.module('iouapi-tasks', ['iouapi-user'])
         var self = this;
         var deferred = $q.defer();
         task._parseObj.set('state', TaskState.FINISHED);
+        task._parseObj.save(null, {
+          success: function(result) {
+            deferred.resolve(self._toTask(result));
+          },
+          error: function(task, error) {
+            deferred.reject(error);
+          }
+        });
+        return deferred.promise;
+      },
+
+      confirmRewardReceived: function(task) {
+        var self = this;
+        var deferred = $q.defer();
+        task._parseObj.set('state', TaskState.REWARD_RECEIVED);
         task._parseObj.save(null, {
           success: function(result) {
             deferred.resolve(self._toTask(result));

@@ -33,7 +33,8 @@ exports.createInvitationAndSendEmail = function(email, user, circle) {
     success: function() {
       Mandrill.sendEmail({
         message: {
-          text: 'Please follow the following link: http://www.taskfriends.com/#/landing?invite=' + g,
+          text: user.get('name') + ' has invited you to join his group ' + circle + ' on TaskFriends. ' + 
+                'Follow the following link to register: http://www.taskfriends.com/#/landing?invite=' + g,
           subject: 'You have been invited to TaskFriends',
           from_email: "admin@taskfriends.parseapp.com",
           from_name: "TaskFriends",
@@ -57,6 +58,41 @@ exports.createInvitationAndSendEmail = function(email, user, circle) {
     },
     error: function() {
       def.reject('Failed to save invitation');
+    }
+  });
+  return def.promise;
+};
+
+exports.notifyOfNewTasks = function(user, circle, tasks) {
+  var def = Q.defer();  
+  var availableTasks = '';
+  _(tasks).each(function(t, idx) {
+    availableTasks += '"' + t.get('title') + '"';
+    if(idx !== tasks.length-1) {
+      availableTasks += ', ';
+    }
+  });
+  Mandrill.sendEmail({
+    message: {
+      subject: circle.get('name') + ' has new tasks available for you on TaskFriends',
+      text: circle.get('name') + ' The following tasks are available: ' + availableTasks + '. You can claim them at www.taskfriends.com',
+      from_email: 'admin@taskfriends.parseapp.com',
+      from_name: 'TaskFriends',
+      to: [
+        {
+          email: user.get('email'),
+          name: user.get('name')
+        }
+      ]
+    },
+    async: true
+  },{
+    success: function(httpResponse) {
+      def.resolve();
+    },
+    error: function(httpResponse) {
+      console.error(httpResponse);
+      def.reject();
     }
   });
   return def.promise;

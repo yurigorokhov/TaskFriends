@@ -72,6 +72,17 @@ angular.module('controllers')
         });
       };
 
+      $scope.confirmReward = function(task) {
+        tasks.confirmRewardReceived(task).then(function(newTask) {
+          toaster.pop('success', 'Success', 'Hope you enjoyed the reward! The task has been removed');
+          $scope.tasks = _($scope.tasks).filter(function(t) {
+            return t.id !== task.id;
+          });
+        }, function() {
+          toaster.pop('error', 'Error', 'There was an error updating the task');
+        });
+      };
+
       $scope.completeTask = function(task) {
         tasks.requestCompletion(task).then(function(newTask) {
           toaster.pop('success', 'Success', 'Your task has been submitted to the creator for review');

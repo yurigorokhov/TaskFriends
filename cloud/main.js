@@ -2,13 +2,15 @@ var Q = require('cloud/q.min.js');
 var _ = require('underscore');
 var util = require('cloud/util.js');
 var invitations = require('cloud/invitations.js');
+var moment = require('moment');
 
 //--- Tasks ---
 TaskState = {
 	OPEN: 100,
 	CLAIMED: 200,
   PENDING_APPROVAL: 250,
-	FINISHED: 300
+	FINISHED: 300,
+  REWARD_RECEIVED: 400
 };
 
 var Task = Parse.Object.extend('Task');
@@ -84,12 +86,24 @@ Parse.Cloud.beforeSave('Task', function(request, response) {
 			  			}
 			  			break;
             case TaskState.PENDING_APPROVAL:
-              if(request.object.get('createdBy').id !== request.user.id) {
+              if(newState !== TaskState.FINISHED) {
+                response.error('Invalid task state transition');
+                return;
+              } else if(request.object.get('createdBy').id !== request.user.id) {
                 response.error('Only the owner can finish their task, you must request permission');
                 return;
               }
               break;
 			  		case TaskState.FINISHED:
+              if(newState !== TaskState.REWARD_RECEIVED) {
+                response.error('Invalid task state transition');
+                return;
+              } else if(request.object.get('claimedBy').id !== request.user.id) {
+                response.error('Only the claimer can approve the reward');
+                return;
+              }
+              break;
+            case TaskState.REWARD_RECEIVED:
 			  			response.error('Invalid task state transition');
 			  			return;
 			  			break;
@@ -317,3 +331,57 @@ Parse.Cloud.define('InviteFriends', function(request, response) {
     }
   );
 });
+
+
+//--- Jobs ---
+Parse.Cloud.job('NewTasksAvailable', function(request, status) {
+  
+  // Set up to modify user data
+  Parse.Cloud.useMasterKey();
+
+  // current date
+  var now = moment();
+  var subtract = moment.duration(1, 'd');
+  var queryDate = now.subtract(subtract);
+
+  // Query all circles
+  var circleQuery = new Parse.Query(Parse.Role);
+  util.parseQuery(circleQuery).then(function(circles) {
+    Q.all(_(circles).map(function(circle) {
+      return notifyCircle(circle, queryDate.clone());
+    })).then(function() {
+      status.success('Notified all circles');
+    }, function() {
+      status.error('Something went wrong notifying circles');
+    });
+  }, function() {
+    status.error('There was an error finding circles');
+  })
+});
+
+var notifyCircle = function(circle, date) {
+  var def = Q.defer();
+  var newTasks = new Parse.Query('Task');
+  newTasks.equalTo('circle', circle.get('name'));
+  newTasks.greaterThanOrEqualTo('createdAt', date.toDate());
+  newTasks.include('createdBy');
+  newTasks.equalTo('state', TaskState.OPEN);
+  util.parseQuery(newTasks).then(function(tasks) {
+
+    // iterate over all users
+    util.parseQuery(circle.getUsers().query()).then(function(users) {
+      _(users).each(function(user) {
+        var filteredTasks = _(tasks).filter(function(t) {
+          return t.get('createdBy').id !== user.id; 
+        });
+        invitations.notifyOfNewTasks(user, circle, filteredTasks);
+      });
+      def.resolve();
+    }, function() {
+      def.reject();
+    });
+  }, function() {
+    console.log('There was an error finding tasks for circle: ' + circle.name);
+  });
+  return def.promise;
+};

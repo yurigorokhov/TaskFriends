@@ -50,7 +50,7 @@
         <ul class="list-group">
           <li class="list-group-item" ng-repeat="prize in task.prizes">
             <span>{{ prize.reward }}</span>
-            <button class="btn btn-xs btn-primary pull-right">Received</button>
+            <button ng-click="confirmReward(task)" ng-show="task.permissions.canConfirmReward" class="btn btn-xs btn-primary pull-right">Received</button>
           </li>
         </ul>
       </accordion-group>
