@@ -60,7 +60,7 @@
   <!-- Debts -->
   <div class="col-md-6">
     <h2>Rewards Owed</h2>
-    <div ng-show="debtTasks.length === 0" class="alert alert-info">Tasks finished by others will appear</div>
+    <div ng-show="debtTasks.length === 0" class="alert alert-info">Tasks finished by others will appear here</div>
     <accordion close-others="false" ng-show="debtTasks.length > 0">
       <accordion-group ng-repeat="task in debtTasks" id="{{task.id}}">
         <accordion-heading>

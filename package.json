@@ -24,7 +24,9 @@
     "gulp-ngmin": "~0.2.0",
     "gulp-if": "0.0.5"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "gulp-replace": "~0.3.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

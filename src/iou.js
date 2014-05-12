@@ -1,4 +1,4 @@
-Parse.initialize("TnKwlgf74fHAhpmQKtOLR0OS0exGelFKLC3u88nU", "nWdvt7vCsQxcgflTwtIX9S6bprHWDbdpJqFmFZAo");
+Parse.initialize("TASKFRIENDS_APPID", "TASKFRIENDS_CLIENTKEY");
 
 //--- Modules ---
 var iouApp = angular.module('iou', [

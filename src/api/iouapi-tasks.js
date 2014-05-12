@@ -66,6 +66,7 @@ angular.module('iouapi-tasks', ['iouapi-user'])
 
         // fetch prizes
         var query = new Parse.Query(self._task);
+        query.equalTo('circle', circle);
         query.include('createdBy');
         query.include('claimedBy');
         if('createdByUser' in options) {

@@ -15,12 +15,21 @@ var size = require('gulp-size');
 var minifyCSS = require('gulp-minify-css');
 var ngmin = require('gulp-ngmin');
 var gulpif = require('gulp-if');
+var replace = require('gulp-replace');
 var server = lr();
 
-var config = { uglify: true };
+var config = { production: true };
 try {
   config = eval('(' + fs.readFileSync('gulp.config', 'utf8') + ')');
 } catch (e) {}
+var keys = config.production ? {
+  APPID: 'TnKwlgf74fHAhpmQKtOLR0OS0exGelFKLC3u88nU',
+  CLIENTKEY: 'nWdvt7vCsQxcgflTwtIX9S6bprHWDbdpJqFmFZAo'
+} : {
+  APPID: 'JwOZKxsRmma9DGgWBl10YVRJdz2W5bjR5SiiJWlK',
+  CLIENTKEY: 'a6ZCtotBmVCWeYHdJdgHu9oS5Mx76TATOJZofA4G'
+};
+
 
 var buildDir = './build/';
 
@@ -80,8 +89,10 @@ gulp.task('scripts', ['bower-build'], function () {
 gulp.task('build-scripts', ['scripts'], function () {
   return gulp.src(jsFiles)
     .pipe(concat('iou.min.js'))
-    .pipe(gulpif(config.uglify, ngmin()))
-    .pipe(gulpif(config.uglify, uglify({ outSourceMap: true, mangle: false })))
+    .pipe(replace(/TASKFRIENDS_APPID/g, keys.APPID))
+    .pipe(replace(/TASKFRIENDS_CLIENTKEY/g, keys.CLIENTKEY))
+    .pipe(gulpif(config.production, ngmin()))
+    .pipe(gulpif(config.production, uglify({ outSourceMap: true, mangle: false })))
     .pipe(size())
     .pipe(gulp.dest('./public/js/'));
 });
