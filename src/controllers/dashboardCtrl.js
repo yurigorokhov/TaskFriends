@@ -2,7 +2,6 @@ angular.module('controllers')
   .controller('DashboardCtrl', ['$scope', 'tasks', 'blockUI', 'UserService', '$q', 'toaster', '$modal',
     function ($scope, tasks, $blockUI, UserService, $q, toaster, $modal) {
       var self = this;
-    	$scope.tasks = [];
       $scope.myOpenTasks = [];
       $scope.todoTasks = [];
       $scope.debtTasks = [];
@@ -12,23 +11,13 @@ angular.module('controllers')
           return;
         }
         $blockUI.start();
-        tasks.getDashboardTasks(UserService.User).then(
+        tasks.getDashboardTasks(UserService.User, UserService.User.currentCircle).then(
           function(res) {
             $blockUI.reset();
-            $scope.tasks = _([
-                _(res.todoTasks).map(function(t) {
-                  t.type = 'todo'; return t;
-                }),
-                _(res.assetTasks).map(function(t) {
-                  t.type = 'asset'; return t;
-                }),
-                _(res.debtTasks).map(function(t) {
-                  t.type = 'debt'; return t;
-                }),
-                _(res.myOpenTasks).map(function(t) {
-                  t.type = 'myopen'; return t;
-                })
-              ]).flatten();
+            $scope.todoTasks = res.todoTasks;
+            $scope.assetTasks = res.assetTasks;
+            $scope.debtTasks = res.debtTasks;
+            $scope.myOpenTasks = res.myOpenTasks;
           },
           function() {
             $blockUI.reset();
@@ -38,20 +27,6 @@ angular.module('controllers')
       };
       $scope.$on('TaskUpdate', function(e, task) {
         refreshDasboard();
-      });
-      $scope.$watch('tasks', function(newVal) {
-        $scope.myOpenTasks = _(newVal).filter(function(t) {
-          return t.type === 'myopen';
-        });
-        $scope.todoTasks = _(newVal).filter(function(t) {
-          return t.type === 'todo';
-        });
-        $scope.debtTasks = _(newVal).filter(function(t) {
-          return t.type === 'debt';
-        });
-        $scope.assetTasks = _(newVal).filter(function(t) {
-          return t.type === 'asset';
-        });
       });
       if(UserService.User.currentCircle) {
         refreshDasboard();
@@ -63,7 +38,7 @@ angular.module('controllers')
       $scope.deleteTask = function(task) {
         tasks.deleteTask(task).then(function() {
           toaster.pop('success', 'Success', 'Your task was successfully deleted');
-          $scope.tasks = _($scope.tasks)
+          $scope.myOpenTasks = _($scope.myOpenTasks)
             .filter(function(t) {
               return t.id !== task.id;
             });
@@ -74,8 +49,8 @@ angular.module('controllers')
 
       $scope.confirmReward = function(task) {
         tasks.confirmRewardReceived(task).then(function(newTask) {
-          toaster.pop('success', 'Success', 'Hope you enjoyed the reward! The task has been removed');
-          $scope.tasks = _($scope.tasks).filter(function(t) {
+          toaster.pop('success', 'Success', 'Hope you enjoyed the reward! The task has been removed from your earned list');
+          $scope.assetTasks = _($scope.assetTasks).filter(function(t) {
             return t.id !== task.id;
           });
         }, function() {
@@ -86,7 +61,7 @@ angular.module('controllers')
       $scope.completeTask = function(task) {
         tasks.requestCompletion(task).then(function(newTask) {
           toaster.pop('success', 'Success', 'Your task has been submitted to the creator for review');
-          $scope.tasks = _($scope.tasks)
+          $scope.todoTasks = _($scope.todoTasks)
             .map(function(t) {
               var currTask = t;
               if(currTask.id === newTask.id) {

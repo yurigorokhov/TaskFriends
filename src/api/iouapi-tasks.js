@@ -16,6 +16,19 @@ angular.module('iouapi-tasks', ['iouapi-user'])
       TaskState: TaskState,
 
       //--- Methods ---
+      _parseQuery: function(query) {
+        var def = $q.defer();
+        query.find({
+          success: function(results) {
+            def.resolve(results);
+          },
+          error: function(error) {
+            def.reject(error);
+          }
+        });
+        return def.promise;
+      },
+
       _toTask: function(parseObj) {
         var self = this;
         return {
@@ -97,32 +110,63 @@ angular.module('iouapi-tasks', ['iouapi-user'])
         return deferred.promise;
       },
 
-      getDashboardTasks: function(user) {
+      getDashboardTasks: function(user, currentCircle) {
         var self = this;
         var def = $q.defer();
-        if(!user || !user.currentCircle) {
-          def.reject('No current circle was set');
+        if(!user || !currentCircle) {
+          def.reject('No user or current circle was set');
         } else {
-          Parse.Cloud.run('GetDashboardTasks', { circle: user.currentCircle }, {
-            success: function(res) {
-              def.resolve({
-                todoTasks: _(res.todoTasks).map(function(t) { 
-                  return self.populatePermissionsForTask(self._toTask(t), user); 
-                }),
-                assetTasks: _(res.assetTasks).map(function(t) { 
-                  return self.populatePermissionsForTask(self._toTask(t), user); 
-                }),
-                debtTasks: _(res.debtTasks).map(function(t) { 
-                  return self.populatePermissionsForTask(self._toTask(t), user); 
-                }),
-                myOpenTasks: _(res.myOpenTasks).map(function(t) { 
-                  return self.populatePermissionsForTask(self._toTask(t), user); 
-                })
-              });
-            },
-            error: function(error) {
-              def.reject(error);
-            }
+
+          // TODO
+          var todoQuery = new Parse.Query('Task');
+          todoQuery.equalTo('circle', currentCircle);
+          todoQuery.include('createdBy');
+          todoQuery.equalTo('claimedBy', user._parseObj);
+          todoQuery.containedIn('state', [TaskState.PENDING_APPROVAL, TaskState.CLAIMED]);
+
+          // assets
+          var assetQuery = new Parse.Query('Task');
+          assetQuery.equalTo('circle', currentCircle);
+          assetQuery.include('createdBy');
+          assetQuery.equalTo('claimedBy', user._parseObj);
+          assetQuery.equalTo('state', TaskState.FINISHED);
+
+          // debts
+          var debtQuery = new Parse.Query('Task');
+          debtQuery.equalTo('circle', currentCircle);
+          debtQuery.include('createdBy');
+          debtQuery.include('claimedBy');
+          debtQuery.equalTo('createdBy', user._parseObj);
+          debtQuery.equalTo('state', TaskState.FINISHED);
+
+          // my tasks
+          var myTasks = new Parse.Query('Task');
+          myTasks.equalTo('circle', currentCircle);
+          myTasks.include('createdBy');
+          myTasks.include('claimedBy');
+          myTasks.equalTo('createdBy', user._parseObj);
+          myTasks.lessThan('state', TaskState.FINISHED);
+          var postProcess = function(tasks) {
+            return _(tasks).map(function(t) {
+              return self.populatePermissionsForTask(self._toTask(t), user);
+            });
+          };
+
+          // Run queries
+          $q.all([
+            self._parseQuery(todoQuery), 
+            self._parseQuery(assetQuery), 
+            self._parseQuery(debtQuery), 
+            self._parseQuery(myTasks)]
+          ).then(function(res) {
+            def.resolve({
+              todoTasks: postProcess(res[0]),
+              assetTasks: postProcess(res[1]),
+              debtTasks: postProcess(res[2]),
+              myOpenTasks: postProcess(res[3])
+            });
+          }, function(error) {
+            def.reject(error);
           });
         }
         return def.promise;

@@ -149,67 +149,6 @@ Parse.Cloud.beforeDelete('Task', function(request, response) {
 	}
 });
 
-//--- Dashboard ---
-Parse.Cloud.define('GetDashboardTasks', function(request, response) {
-  
-  // get current circle
-  //(yurig): It is ok to search with a parametrized circle here 
-  // because the ACL's lock down the tasks anyway
-  var currentCircle = request.params.circle;
-  if(!currentCircle) {
-    response.error('You are not part of any circle, you cannot create tasks');
-    return;
-  }
-
-  // TODO
-  var todoQuery = new Parse.Query('Task');
-  todoQuery.equalTo('circle', currentCircle);
-  todoQuery.include('createdBy');
-  todoQuery.equalTo('claimedBy', request.user);
-  todoQuery.containedIn('state', [TaskState.PENDING_APPROVAL, TaskState.CLAIMED]);
-
-  // assets
-  var assetQuery = new Parse.Query('Task');
-  assetQuery.equalTo('circle', currentCircle);
-  assetQuery.include('createdBy');
-  assetQuery.equalTo('claimedBy', request.user);
-  assetQuery.equalTo('state', TaskState.FINISHED);
-
-  // debts
-  var debtQuery = new Parse.Query('Task');
-  debtQuery.equalTo('circle', currentCircle);
-  debtQuery.include('createdBy');
-  debtQuery.include('claimedBy');
-  debtQuery.equalTo('createdBy', request.user);
-  debtQuery.equalTo('state', TaskState.FINISHED);
-
-  // my tasks
-  var myTasks = new Parse.Query('Task');
-  myTasks.equalTo('circle', currentCircle);
-  myTasks.include('createdBy');
-  myTasks.include('claimedBy');
-  myTasks.equalTo('createdBy', request.user);
-  myTasks.lessThan('state', TaskState.FINISHED);
-
-  // Run queries
-  Q.all([
-  	util.parseQuery(todoQuery), 
-  	util.parseQuery(assetQuery), 
-  	util.parseQuery(debtQuery), 
-  	util.parseQuery(myTasks)]
-  ).then(function(res) {
-  	response.success({
-  		todoTasks: res[0],
-  		assetTasks: res[1],
-  		debtTasks: res[2],
-  		myOpenTasks: res[3]
-  	});
-  }, function(error) {
-  	response.error(error);
-  });
-});
-
-
 //--- Circles ---
 Parse.Cloud.define('GetUserCircles', function(request, response) {
   if(request.user === null) {
