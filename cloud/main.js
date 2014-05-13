@@ -189,7 +189,7 @@ Parse.Cloud.define('GetDashboardTasks', function(request, response) {
   myTasks.include('createdBy');
   myTasks.include('claimedBy');
   myTasks.equalTo('createdBy', request.user);
-  myTasks.notEqualTo('state', TaskState.FINISHED);
+  myTasks.lessThan('state', TaskState.FINISHED);
 
   // Run queries
   Q.all([
