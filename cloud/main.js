@@ -3,6 +3,7 @@ var _ = require('underscore');
 var util = require('cloud/util.js');
 var invitations = require('cloud/invitations.js');
 var moment = require('moment');
+var fs = require('fs');
 
 //--- Tasks ---
 TaskState = {
@@ -255,9 +256,7 @@ Parse.Cloud.define('InviteFriends', function(request, response) {
 
 //--- Jobs ---
 Parse.Cloud.job('NewTasksAvailable', function(request, status) {
-  
-  // Set up to modify user data
-  Parse.Cloud.useMasterKey();
+  var emailTemplate = _(fs.readFileSync('cloud/emails/newTasksAvailable.html.js', 'utf8')).template(null, {variable: 'data'});
 
   // current date
   var now = moment();
@@ -266,42 +265,50 @@ Parse.Cloud.job('NewTasksAvailable', function(request, status) {
 
   // Query all circles
   var circleQuery = new Parse.Query(Parse.Role);
-  util.parseQuery(circleQuery).then(function(circles) {
-    Q.all(_(circles).map(function(circle) {
-      return notifyCircle(circle, queryDate.clone());
-    })).then(function() {
-      status.success('Notified all circles');
-    }, function() {
-      status.error('Something went wrong notifying circles');
-    });
-  }, function() {
-    status.error('There was an error finding circles');
-  })
+  circleQuery.find({
+    success: function(circles) {
+      Q.all(_(circles).map(function(circle) {
+        return notifyCircle(circle, queryDate.clone(), emailTemplate);
+      })).then(function() {
+        status.success('Notified all circles');
+      }, function(err) {
+        status.error(err);
+      });
+    }, error: function() {
+      status.error('Could not find any circles!');
+    }, useMasterKey: true
+  });
 });
 
-var notifyCircle = function(circle, date) {
+var notifyCircle = function(circle, date, emailTemplate) {
   var def = Q.defer();
   var newTasks = new Parse.Query('Task');
   newTasks.equalTo('circle', circle.get('name'));
   newTasks.greaterThanOrEqualTo('createdAt', date.toDate());
   newTasks.include('createdBy');
   newTasks.equalTo('state', TaskState.OPEN);
-  util.parseQuery(newTasks).then(function(tasks) {
-
-    // iterate over all users
-    util.parseQuery(circle.getUsers().query()).then(function(users) {
-      _(users).each(function(user) {
-        var filteredTasks = _(tasks).filter(function(t) {
-          return t.get('createdBy').id !== user.id; 
-        });
-        invitations.notifyOfNewTasks(user, circle, filteredTasks);
-      });
-      def.resolve();
-    }, function() {
-      def.reject();
-    });
-  }, function() {
-    console.log('There was an error finding tasks for circle: ' + circle.name);
+  newTasks.find({
+    success: function(tasks) {
+      circle.getUsers().query().find({
+        success: function(users) {
+          _(users).each(function(user) {
+            var filteredTasks = _(tasks).filter(function(t) {
+              return t.get('createdBy').id !== user.id; 
+            });
+            if(filteredTasks.length > 0) {
+              invitations.notifyOfNewTasks(user, circle, filteredTasks, emailTemplate);
+            }
+          });
+          def.resolve();
+        },
+        error: function(err) {
+          def.reject(err);
+        },
+        useMasterKey: true
+      })
+    }, error: function(err) {
+      def.reject('failed to find tasks');
+    }, useMasterKey: true
   });
   return def.promise;
 };

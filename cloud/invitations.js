@@ -68,7 +68,7 @@ exports.createInvitationAndSendEmail = function(email, user, circle) {
   return def.promise;
 };
 
-exports.notifyOfNewTasks = function(user, circle, tasks) {
+exports.notifyOfNewTasks = function(user, circle, tasks, emailTemplate) {
   var def = Q.defer();  
   var availableTasks = '';
   _(tasks).each(function(t, idx) {
@@ -80,7 +80,15 @@ exports.notifyOfNewTasks = function(user, circle, tasks) {
   Mandrill.sendEmail({
     message: {
       subject: circle.get('name') + ' has new tasks available for you on TaskFriends',
-      text: circle.get('name') + ' The following tasks are available: ' + availableTasks + '. You can claim them at www.taskfriends.com',
+      html: emailTemplate({
+        circle: circle.get('name'),
+        user: {
+          name: user.get('name')
+        },
+        tasks: _(tasks).map(function(t) {
+          return { title: t.get('title') };
+        })
+      }),
       from_email: 'admin@taskfriends.parseapp.com',
       from_name: 'TaskFriends',
       to: [
