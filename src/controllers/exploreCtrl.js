@@ -30,6 +30,7 @@ angular.module('controllers')
             toaster.pop('error', 'Error', 'There was an error loading tasks');
           });
       };
+      reloadTasks();
       CircleService.observe(reloadTasks);
     }
   ]);
