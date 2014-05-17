@@ -1,6 +1,6 @@
 angular.module('controllers')
-  .controller('ParentCtrl', ['$scope', '$location', 'user', 'UserService', 'MessageService', 'toaster', 'blockUI', '$modal', 'tasks',
-    function ($scope, $location, user, UserService, MessageService, toaster, $blockUI, $modal, tasks) {
+  .controller('ParentCtrl', ['$scope', '$location', 'user', 'UserService', 'MessageService', 'toaster', 'blockUI', '$modal', 'tasks', 'CircleService',
+    function ($scope, $location, user, UserService, MessageService, toaster, $blockUI, $modal, tasks, CircleService) {
       $scope.$on('$routeChangeSuccess', function () {
         $scope.isLandingPage = $location.path().indexOf('/landing') === 0;
       });
@@ -9,12 +9,12 @@ angular.module('controllers')
       $scope.dashboardActive = '';
       $scope.exploreActive = '';
       $scope.messages = [];
-      UserService.observe(function(newValue) {
-        $scope.currentUser = newValue.user;
-        $scope.circles = newValue.circles;
+      UserService.observe(function(newUser) {
+        $scope.currentUser = newUser;
       });
-      UserService.observeCircleChange(function(circle) {
-        $scope.currentCircle = circle;
+      CircleService.observe(function(circles) {
+        $scope.circles = circles;
+        $scope.currentCircle = CircleService.getCurrentCircle();
       });
       MessageService.observe(function(messages) {
         $scope.messages = messages;
@@ -31,9 +31,13 @@ angular.module('controllers')
             break;
         }
       });
+
+      // Check for an invitation token    
+      var invitationToken = $location.search().invite;
+      $location.search('invite', null);
       user.getCurrent().then(function(currentUser) {
         if(currentUser !== null) {
-          UserService.setUser(currentUser);
+          UserService.setUser(currentUser, invitationToken);
         }
       });
       $scope.processMessage = function(message) {
@@ -64,17 +68,9 @@ angular.module('controllers')
         return c === $scope.currentCircle ? 'active' : '';
       };
       $scope.setCurrentCircle = function(c) {
-        $blockUI.start();
-        UserService.changeCircle(c).then(
-          function() {
-            $blockUI.reset();
-            $scope.currentCircle = c;
-          },
-          function() {
-            $blockUI.reset();
-            toaster.pop('error', 'Error', 'There was an error loading ' + c);
-          }
-        );
+        if(!CircleService.changeCircle(c)) {
+          toaster.pop('error', 'Error', 'There was an error loading ' + c);
+        }
       };
 
       // invite friends modal

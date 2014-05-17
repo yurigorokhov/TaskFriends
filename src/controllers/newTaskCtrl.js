@@ -1,6 +1,6 @@
 angular.module('controllers')
-  .controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'toaster', 'items', 'UserService',
-    function($scope, $modalInstance, tasks, toaster, items, UserService) {
+  .controller('NewTaskModal', ['$scope', '$modalInstance', 'tasks', 'toaster', 'items', 'UserService', 'CircleService',
+    function($scope, $modalInstance, tasks, toaster, items, UserService, CircleService) {
       $scope.state = items.state || 'create';
       if((items.state === 'edit' || items.state === 'confirmCompletion')&& items.task === null) {
         throw('No task was supplied');
@@ -38,7 +38,7 @@ angular.module('controllers')
       $scope.processTask = function (task) {
         switch($scope.state) {
           case 'create':
-            tasks.add(task).then(
+            tasks.add(task, CircleService.getCurrentCircle()).then(
               function(newTask) {
                 $modalInstance.close();
                 items.processTask(newTask);

@@ -22,7 +22,11 @@ angular.module('controllers')
       };
       $scope.register = function(userData) {
         $blockUI.start();
-        $user.register(userData).then(
+        // Check for an invitation token
+        
+        var invitationToken = $location.search().invite;
+        $location.search('invite', null);
+        $user.register(userData, invitationToken).then(
           function(newUser) {
             toaster.clear();
             UserService.setUser(newUser);
@@ -31,7 +35,16 @@ angular.module('controllers')
           },
           function(error) {
             $blockUI.stop();
-            toaster.pop('error', 'Error', error);
+            switch(error) {
+              case 'bad-invitation-token': 
+                toaster.pop('error', 'Error', 'The invitation you are using may have already been used or is invalid');
+                break;
+              case 'missing-invitation-token': 
+                toaster.pop('error', 'Error', 'You must have an invitation to create an account at this time');
+                break;
+              default: 
+                toaster.pop('error', 'Error', error);
+            }
           } 
         );
       };

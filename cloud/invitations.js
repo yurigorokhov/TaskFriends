@@ -8,15 +8,20 @@ var Invitation = Parse.Object.extend('Invitation');
 
 exports.findInvitation = function(invitationToken) {
   var def = Q.defer();
-  var tokenQuery = new Parse.Query(Invitation);
+  var tokenQuery = new Parse.Query('Invitation');
   tokenQuery.equalTo('token', invitationToken);
   tokenQuery.first({
     success: function(invite) {
-      def.resolve(invite);
+      if(invite) {
+        def.resolve(invite);
+      } else {
+        def.reject();
+      }
     },
     error: function() {
       def.reject();
-    }
+    },
+    useMasterKey: true
   });
   return def.promise;
 };

@@ -2,12 +2,19 @@ angular.module('iouapi-circles', [])
   .factory('circles', ['$q', function($q) {
     return {
 
+      _toCircle: function(parseObj) {
+        return parseObj.attributes.name;
+      },
+
       //--- Methods ---
-      getCircles: function(invitationToken) {
+      getCircles: function() {
+        var self = this;
         var def = $q.defer();
-        Parse.Cloud.run('GetUserCircles', { token: invitationToken }, {
+        new Parse.Query(Parse.Role).find({
           success: function(circles) {
-            def.resolve(circles);
+            def.resolve(_(circles).map(function(c) {
+              return self._toCircle(c);
+            }));
           },
           error: function(error) {
             def.reject(error);

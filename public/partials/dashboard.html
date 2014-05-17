@@ -97,9 +97,9 @@
           <div>
             <span class="icon-users pull-left"></span>
             <span class="iou-task-title">{{ task.title }}</span>
+             <span ng-show="task.permissions.isInProgress"class="pull-right "><small>In Progess by </small><span class="label label-success">{{ task.claimedBy.name }}</span></span>
           </div>
         </accordion-heading>
-        <span ng-show="task.permissions.isInProgress"class="pull-right ">In Progess by <span class="label label-success">{{ task.claimedBy.name }}</span></span>
         <h4 ng-show="task.description.length > 0"><strong>Description</strong></h4>
         <p>{{ task.description }}</p>
         <h4><strong>Rewards</strong></h4>

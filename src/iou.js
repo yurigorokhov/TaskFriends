@@ -70,7 +70,7 @@ iouApp.config(['$routeProvider', 'blockUIConfigProvider',
 angular.module('controllers', ['ui.bootstrap']);
 
 //--- Services ---
-iouApp.service('MessageService', function($q, UserService, tasks, $interval) {
+iouApp.service('MessageService', function($q, UserService, tasks, $interval, CircleService) {
   this.Messages = [];
   this._id = 0;
   this._cachedCircle = null;
@@ -111,9 +111,9 @@ iouApp.service('MessageService', function($q, UserService, tasks, $interval) {
       func(self.Messages);
     });
   };
-  UserService.observeCircleChange(function(circle) {
-    self._cachedCircle = circle;
-    self._fetchMessages(UserService.User, circle);
+  CircleService.observe(function() {
+    self._cachedCircle = CircleService.getCurrentCircle();
+    self._fetchMessages(UserService.User, self._cachedCircle);
   });
 
   // Periodically check for new messages
@@ -122,75 +122,92 @@ iouApp.service('MessageService', function($q, UserService, tasks, $interval) {
   }, 10000);
 });
 
-iouApp.service('UserService', function(user, circles, $q, $location) {
-  this.User = null;
-  this.Circles = null;
+iouApp.service('CircleService', function(circles, $q, UserService, $location) {
+  var self = this;
+  this.Circles = [];
   this._observers = [];
-  this._circleObservers = [];
+  this._key = null;
+  this.getCurrentCircle = function() {
+    if(_(self.Circles).isEmpty() || self._key === null) {
+      return null;
+    } else {
+
+      // check local storage, fall back to first in Circles list
+      var currentCircle = localStorage.getItem(self._key);
+      if(currentCircle === null || !_(self.Circles).include(currentCircle)) {
+        currentCircle = _(self.Circles).first();
+        if(currentCircle) {
+          localStorage.removeItem(self._key);
+        } else {
+          localStorage.setItem(self._key, currentCircle);
+        }
+      }
+      return currentCircle;
+    }
+  };
+  this._notify = function() {
+    _(this._observers).each(function(o) { o(self.Circles); });
+  };
   this.observe = function(func) {
     this._observers.push(func);
   };
-  this.observeCircleChange = function(func) {
-    this._circleObservers.push(func);
-  };
   this.changeCircle = function(circle) {
-    var def = $q.defer();
-    var self = this;
-    if(self.User === null || self.Circles === null) {
-      throw 'User or Circles are not set';
+    if(_(self.Circles).include(circle) && self._key !== null) {
+      localStorage.setItem(self._key, circle);
+      self._notify();
+      return true;
+    } else {
+      return false;
     }
-    user.changeCircle(circle).then(
-      function(newUser) {
-        self.User = newUser;
-        _(self._circleObservers).each(function(o) { o(circle); });
-        def.resolve();
-      },
-      function(error) {
-        def.reject(error);
-      }
-    );
-    return def.promise;
   };
-  this.setUser = function(user) {
+  UserService.observe(function(user) {
+    if(user === null) {
+      this.Circles = [];
+      self._notify();
+      self._key = null;
+    } else {
+      circles.getCircles().then(function(circles) {
+        self.Circles = circles;
+        self._key = 'currentCircle_' + user.id; 
+        self._notify();
+      }, function() {
+        self.Circles = [];
+        self.key = null;
+        self._notify();
+      });
+    }
+  });
+});
+
+iouApp.service('UserService', function(user, toaster) {
+  this.User = null;
+  this._observers = [];
+  this.observe = function(func) {
+    this._observers.push(func);
+  };
+  this.setUser = function(u, invitationToken) {
     var self = this;
 
     // Do not allow setting of a user twice
     if(self.User !== null) {
       throw 'A user has already been set, logout first!';
     }
-    
-    // get and unset the invitation token
-    var invitationToken = $location.search().invite;
-    $location.search('invite', null);
-    self.User = user;
-    if(user !== null && 'currentCircle' in user) {
-      _(self._circleObservers).each(function(o) { o(user.currentCircle); });
-    }
-    if(user === null) {
-      self.Circles = null;
-      _(self._observers).each(function(o) { o({ user: user, circles: null }); });
+    self.User = u;
+    _(self._observers).each(function(o) { o(u); });
+    if(!_(invitationToken).isEmpty()) {
+      user.claimInvitationToken(u, invitationToken).then(function() {
+      }, function(error) {
+        toaster.pop('error', 'Error', 'The invitation you have received has either been claimed or is invalid');
+      }).finally(function() {
+        _(self._observers).each(function(o) { o(u); });
+      });
     } else {
-      circles.getCircles(invitationToken).then(
-        function(circles) {
-          self.Circles = circles;
-          if(_(self.User.currentCircle).isUndefined() && circles.length > 0) {
-            self.changeCircle(circles[0]);
-          }
-          _(self._observers).each(function(o) { o({ user: user, circles: circles }); });
-        },
-        function() {
-          self.Circles = null;
-          _(self._observers).each(function(o) { o({ user: user, circles: null }); });
-        }
-      );
+      _(self._observers).each(function(o) { o(u); });
     }
-    
   };
   this.logOut = function() {
     user.logout();
     this.User = null;
-    this.Circles = null;
-    _(this._observers).each(function(o) { o({ user: null, circles: null }); });
-    _(this._circleObservers).each(function(o) { o(user.currentCircle); });
+    _(this._observers).each(function(o) { o(null); });
   };
 });

@@ -1,17 +1,17 @@
 angular.module('controllers')
-  .controller('DashboardCtrl', ['$scope', 'tasks', 'blockUI', 'UserService', '$q', 'toaster', '$modal',
-    function ($scope, tasks, $blockUI, UserService, $q, toaster, $modal) {
+  .controller('DashboardCtrl', ['$scope', 'tasks', 'blockUI', 'UserService', 'CircleService', '$q', 'toaster', '$modal',
+    function ($scope, tasks, $blockUI, UserService, CircleService, $q, toaster, $modal) {
       var self = this;
       $scope.myOpenTasks = [];
       $scope.todoTasks = [];
       $scope.debtTasks = [];
       $scope.assetTasks = [];
       var refreshDasboard = function() {
-        if(UserService.User === null) {
+        if(UserService.User === null || CircleService.getCurrentCircle() === null) {
           return;
         }
         $blockUI.start();
-        tasks.getDashboardTasks(UserService.User, UserService.User.currentCircle).then(
+        tasks.getDashboardTasks(UserService.User, CircleService.getCurrentCircle()).then(
           function(res) {
             $blockUI.reset();
             $scope.todoTasks = res.todoTasks;
@@ -25,15 +25,13 @@ angular.module('controllers')
           }
         );
       };
+      refreshDasboard();
       $scope.$on('TaskUpdate', function(e, task) {
         refreshDasboard();
       });
-      if(UserService.User.currentCircle) {
-        refreshDasboard();
-      }
 
-      // Refresh the dashboard anytime the user changes
-      UserService.observeCircleChange(refreshDasboard);
+      // Refresh the dashboard anytime the user or circle changes
+      CircleService.observe(refreshDasboard);
 
       $scope.deleteTask = function(task) {
         tasks.deleteTask(task).then(function() {

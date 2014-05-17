@@ -1,13 +1,13 @@
 angular.module('controllers')
-  .controller('InviteFriendsCtrl', ['$scope', '$modalInstance', 'toaster', 'UserService', 'user', 'blockUI',
-    function($scope, $modalInstance, toaster, UserService, user, $blockUI) {
+  .controller('InviteFriendsCtrl', ['$scope', '$modalInstance', 'toaster', 'CircleService', 'user', 'blockUI',
+    function($scope, $modalInstance, toaster, CircleService, user, $blockUI) {
       $scope.invitations = {
         emails: ''
       };
-      $scope.currentCircle = UserService.User.currentCircle;
+      $scope.currentCircle = CircleService.getCurrentCircle;
       $scope.invite = function (invitations) {
         $blockUI.start();
-        user.inviteViaEmail(invitations.emails.split(',')).then(
+        user.inviteViaEmail(invitations.emails.split(','), $scope.currentCircle).then(
           function() {
             $modalInstance.close();
             $blockUI.reset();

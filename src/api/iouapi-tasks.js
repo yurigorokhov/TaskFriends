@@ -142,7 +142,6 @@ angular.module('iouapi-tasks', ['iouapi-user'])
           // my tasks
           var myTasks = new Parse.Query('Task');
           myTasks.equalTo('circle', currentCircle);
-          myTasks.include('createdBy');
           myTasks.include('claimedBy');
           myTasks.equalTo('createdBy', user._parseObj);
           myTasks.lessThan('state', TaskState.FINISHED);
@@ -172,11 +171,14 @@ angular.module('iouapi-tasks', ['iouapi-user'])
         return def.promise;
       },
 
-      add: function(data) {
+      add: function(data, circle) {
         var self = this;
         var deferred = $q.defer();
         var task = new self._task();
         task.set('title', data.title);
+        if(circle) {
+          task.set('circle', circle);
+        }
         task.set('description', data.description);
         task.set('prizes', { reward: data.reward });
         task.save(null, {
