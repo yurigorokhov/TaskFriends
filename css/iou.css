@@ -43,8 +43,13 @@
 }
 
 /* Messages */
-
 @media (max-width:768px) {
+	h2 {
+		font-size: 16px;
+	}
+	.iou-task-title {
+		font-size: 12px;
+	}
 	.side-nav {
 		margin-left: -225px;
 		left: 225px;

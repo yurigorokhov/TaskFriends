@@ -40,7 +40,7 @@
 			<table>
 				<tr>
 					<td>
-						<h3>Your task has been claimed</h3>
+						<h3>Your task has been finished</h3>
 						<p class="lead"><%= data.userClaimed %> has finished the following task: <%= data.task.title %></p>
 						<!-- Callout Panel -->
 						<p class="callout">
