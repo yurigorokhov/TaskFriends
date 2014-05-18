@@ -1,5 +1,5 @@
 angular.module('controllers')
-  .controller('LandingCtrl', ['$scope', '$modal', '$location', function($scope, $modal, $location) {
+  .controller('LandingCtrl', ['$scope', '$modal', '$location', 'user', function($scope, $modal, $location, user) {
     $scope.registrationEnabled = 'invite' in $location.search();
     $scope.startLogin = function(mode) {
       var modalInstance = $modal.open({

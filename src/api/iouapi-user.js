@@ -117,6 +117,19 @@ angular.module('iouapi-user', [])
         return deferred.promise;
       },
 
+      verifyInvitation: function(invitationToken) {
+        var def = $q.defer();
+        Parse.Cloud.run('GetInviteInfo', { token: invitationToken }, {
+          success: function(result) {
+            def.resolve(result);
+          },
+          error: function() {
+            def.reject();
+          }
+        });
+        return def.promise;
+      },
+
       inviteViaEmail: function(emails, circle) {
         var def = $q.defer();
         Parse.Cloud.run('InviteFriends', { emails: emails, circle: circle }, {

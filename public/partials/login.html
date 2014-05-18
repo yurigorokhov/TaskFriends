@@ -31,24 +31,25 @@
       <h1 class="text-center">Register</h1>
   </div>
   <div class="modal-body">
+    <div ng-show="badtoken === true" class="alert alert-danger">This invitation has either been used already or is invalid</div>
     <form name="registerForm" ng-submit="register(registerData)">
         <div class="form-group">
-            <input type="text" class="form-control input-lg" ng-model="registerData.displayname" placeholder="Name" required>
+            <input type="text" class="form-control input-lg" ng-model="registerData.displayname" placeholder="Name" required ng-disabled="badtoken === true">
         </div>
         <div class="form-group">
-            <input name="email" type="email" class="form-control input-lg" ng-model="registerData.email" placeholder="Email address" required>
+            <input name="email" type="email" class="form-control input-lg" ng-model="registerData.email" placeholder="Email address" required ng-disabled="badtoken === true">
             <span class="error" ng-show="registerForm.email.$error.email">Please enter a valid email.</span>
         </div>
 
         <div class="form-group">
-            <input type="password" class="form-control input-lg" ng-model="registerData.password" placeholder="Password" required>
+            <input type="password" class="form-control input-lg" ng-model="registerData.password" placeholder="Password" required ng-disabled="badtoken === true">
             <span class="error" ng-show="registerData.password.length < 4">Password should be at least 4 characters long.</span>
         </div>
         <div class="form-group">
-          <input type="password" class="form-control input-lg" ng-model="registerData.passwordverify" placeholder="Verify Password" required>
+          <input type="password" class="form-control input-lg" ng-model="registerData.passwordverify" placeholder="Verify Password" required ng-disabled="badtoken === true">
           <span class="error" ng-show="registerData.passwordverify.length > 0 && registerData.password != registerData.passwordverify">Passwords do not match.</span>
         </div>
-        <button class="btn btn-primary btn-lg btn-block" type="submit">Register</button>
+        <button class="btn btn-primary btn-lg btn-block" type="submit" ng-disabled="badtoken === true">Register</button>
     </form>
   </div>
   <div class="modal-footer">

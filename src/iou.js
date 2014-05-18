@@ -122,7 +122,7 @@ iouApp.service('MessageService', function($q, UserService, tasks, $interval, Cir
   }, 10000);
 });
 
-iouApp.service('CircleService', function(circles, $q, UserService, $location) {
+iouApp.service('CircleService', function(circles, $q, UserService) {
   var self = this;
   this.Circles = [];
   this._observers = [];

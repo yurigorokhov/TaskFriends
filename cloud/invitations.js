@@ -26,7 +26,7 @@ exports.findInvitation = function(invitationToken) {
   return def.promise;
 };
 
-exports.createInvitationAndSendEmail = function(email, user, circle) {
+exports.createInvitationAndSendEmail = function(email, user, circle, emailTemplate) {
   var def = Q.defer();
   var g = util.guid();
   var newInvite = new Invitation();
@@ -38,9 +38,12 @@ exports.createInvitationAndSendEmail = function(email, user, circle) {
     success: function() {
       Mandrill.sendEmail({
         message: {
-          text: user.get('name') + ' has invited you to join his group ' + circle + ' on TaskFriends. ' + 
-                'Follow the following link to register: http://www.taskfriends.com/#/landing?invite=' + g,
-          subject: 'You have been invited to TaskFriends',
+          html: emailTemplate({
+            user: user.get('name'), 
+            circle: circle,
+            url: 'http://taskfriends.com/#/landing?invite=' + g
+          }),
+          subject: user.get('name') + ' has invited you to join TaskFriends',
           from_email: "admin@taskfriends.parseapp.com",
           from_name: "TaskFriends",
           to: [

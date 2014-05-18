@@ -32,11 +32,11 @@ angular.module('controllers')
         }
       });
 
-      // Check for an invitation token    
-      var invitationToken = $location.search().invite;
-      $location.search('invite', null);
+      // Check for an invitation token
       user.getCurrent().then(function(currentUser) {
         if(currentUser !== null) {
+          var invitationToken = $location.search().invite;
+          $location.search('invite', null);
           UserService.setUser(currentUser, invitationToken);
         }
       });

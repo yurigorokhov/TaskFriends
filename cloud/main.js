@@ -224,15 +224,31 @@ var getRoles = function(user) {
 };
 
 //--- Invitations ---
+Parse.Cloud.define('GetInviteInfo', function(request, response) {
+  var invitationToken = request.params.token;
+  if(!_(invitationToken).isEmpty()) {
+    invitations.findInvitation(invitationToken).then(function(invite) {
+      var circle = invite.get('circle');
+      var email = invite.get('sentTo');
+      response.success({ circle: circle, email: email });
+    }, function() {
+      response.error('bad-invitation-token');
+    });
+  } else {
+    response.success();
+  }
+});
+
 Parse.Cloud.define('InviteFriends', function(request, response) {
   var currentCircle = request.params.circle;
   if(!currentCircle) {
     response.error('You are not part of any circle, you cannot invite friends');
     return;
   }
-  checkUserCircle.then(function() {
+  checkUserCircle(request.user, currentCircle).then(function() {
 
     // create a new invitation token
+    var emailTemplate = _(fs.readFileSync('cloud/emails/invitation.html.js', 'utf8')).template(null, {variable: 'data'});
     var emails = request.params.emails;
     if(!emails || !_(emails).isArray()) {
       response.error('You did not specify any emails');
@@ -240,7 +256,7 @@ Parse.Cloud.define('InviteFriends', function(request, response) {
     }
 
     // create and send invitations
-    Q.all(_(emails).map(function(email) { return invitations.createInvitationAndSendEmail(email, request.user, currentCircle); })).then(
+    Q.all(_(emails).map(function(email) { return invitations.createInvitationAndSendEmail(email, request.user, currentCircle, emailTemplate); })).then(
       function() {
         response.success();
       },
@@ -249,7 +265,7 @@ Parse.Cloud.define('InviteFriends', function(request, response) {
       }
     );
   }, function() {
-
+    response.error('Could not verify circle');
   });
 });
 

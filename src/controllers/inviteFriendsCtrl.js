@@ -4,7 +4,7 @@ angular.module('controllers')
       $scope.invitations = {
         emails: ''
       };
-      $scope.currentCircle = CircleService.getCurrentCircle;
+      $scope.currentCircle = CircleService.getCurrentCircle();
       $scope.invite = function (invitations) {
         $blockUI.start();
         user.inviteViaEmail(invitations.emails.split(','), $scope.currentCircle).then(
