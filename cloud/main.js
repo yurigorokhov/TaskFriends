@@ -2,6 +2,7 @@ var Q = require('cloud/q.min.js');
 var _ = require('underscore');
 var util = require('cloud/util.js');
 var invitations = require('cloud/invitations.js');
+var emails = require('cloud/emails.js');
 var moment = require('moment');
 var fs = require('fs');
 
@@ -113,6 +114,17 @@ Parse.Cloud.beforeSave('Task', function(request, response) {
                   break;
                 default:
                   throw 'ShouldNeverHappenException: TaskState';
+              }
+              if(newState === TaskState.CLAIMED) {
+                var Email = Parse.Object.extend('EmailsToSend');
+                var e = new Email();
+                e.set('sendTo', request.object.get('createdBy'));
+                e.set('type', emails.EmailType.TASK_CLAIMED);
+                e.set('data', {
+                  userClaimedName: request.user.get('name'),
+                  task: request.object.get('title')
+                });
+                e.save(null, { useMasterKey: true });
               }
             }
             if(request.object.dirty('prizes')) {
