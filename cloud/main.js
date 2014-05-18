@@ -115,11 +115,11 @@ Parse.Cloud.beforeSave('Task', function(request, response) {
                 default:
                   throw 'ShouldNeverHappenException: TaskState';
               }
-              if(newState === TaskState.CLAIMED) {
+              if(newState === TaskState.CLAIMED || newState === TaskState.PENDING_APPROVAL) {
                 var Email = Parse.Object.extend('EmailsToSend');
                 var e = new Email();
                 e.set('sendTo', request.object.get('createdBy'));
-                e.set('type', emails.EmailType.TASK_CLAIMED);
+                e.set('type', newState === TaskState.CLAIMED ? emails.EmailType.TASK_CLAIMED : emails.EmailType.TASK_PENDING_APPROVAL);
                 e.set('data', {
                   userClaimedName: request.user.get('name'),
                   task: request.object.get('title')

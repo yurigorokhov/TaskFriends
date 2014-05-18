@@ -22,11 +22,11 @@ angular.module('controllers')
         }
         tasks.get({filterUser: UserService.User}, circle).then(
           function(tasksResult) {
-            $blockUI.stop();
+            $blockUI.reset();
             $scope.tasks = tasks.populatePermissions(tasksResult, UserService.User);
           },
           function() {
-            $blockUI.stop();
+            $blockUI.reset();
             toaster.pop('error', 'Error', 'There was an error loading tasks');
           });
       };

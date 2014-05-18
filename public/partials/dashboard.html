@@ -8,9 +8,9 @@
           <div>
             <span class="label label-info pull-left">{{ task.createdBy.name }}</span>
             <span class="iou-task-title">{{ task.title }}</span>
+            <span ng-show="task.permissions.isAwaitingApproval === true" class="label label-info pull-right">Awaiting approval</span>
           </div>
         </accordion-heading>
-        <span ng-show="task.permissions.isAwaitingApproval === true" class="label label-info pull-right">Awaiting approval</span>
         <h4 ng-show="task.description.length > 0"><strong>Description</strong></h4>
         <p>{{ task.description }}</p>
         <h4><strong>Rewards</strong></h4>

@@ -81,6 +81,9 @@ Parse.Cloud.job('TaskNotifications', function(request, status) {
                   case EmailType.TASK_CLAIMED:
                     taskClaimedEmail(user, data.userClaimedName, data.task);
                     break;
+                  case EmailType.TASK_PENDING_APPROVAL:
+                    taskFinishedEmail(user, data.userClaimedName, data.task);
+                    break;
                 }
                 def.resolve();
               }, error: function() {
@@ -116,8 +119,22 @@ var taskClaimedEmail = function(user, userClaimed, taskTitle) {
   sendEmail(user, subject, body);
 };
 
+var taskFinishedEmail = function(user, userClaimed, taskTitle) {
+  var subject = userClaimed + ' has finished your task';
+  var emailTemplate = _(fs.readFileSync('cloud/emails/taskFinished.html.js', 'utf8')).template(null, {variable: 'data'});
+  var body = emailTemplate({
+    userClaimed: userClaimed,
+    task: {
+      title: taskTitle
+    },
+    url: 'http://taskfriends.com/#/dashboard'
+  });
+  sendEmail(user, subject, body);
+};
+
 var EmailType = {
-  TASK_CLAIMED: 100
+  TASK_CLAIMED: 100,
+  TASK_PENDING_APPROVAL: 200
 };
 exports.EmailType = EmailType;
 
