@@ -44,7 +44,7 @@ exports.createInvitationAndSendEmail = function(email, user, circle, emailTempla
             url: 'http://taskfriends.com/#/landing?invite=' + g
           }),
           subject: user.get('name') + ' has invited you to join TaskFriends',
-          from_email: "admin@taskfriends.parseapp.com",
+          from_email: "admin@taskfriends.com",
           from_name: "TaskFriends",
           to: [
             {
@@ -92,7 +92,7 @@ exports.notifyOfNewTasks = function(user, circle, tasks, emailTemplate) {
           return { title: t.get('title') };
         })
       }),
-      from_email: 'admin@taskfriends.parseapp.com',
+      from_email: 'admin@taskfriends.com',
       from_name: 'TaskFriends',
       to: [
         {
