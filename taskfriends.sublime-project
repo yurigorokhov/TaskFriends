@@ -6,12 +6,13 @@
 			[
 				"build",
 				"node_modules",
-				"config",
 				"bower_redist",
 				"redist",
 				"public/css",
 				"public/js",
-				"public/template"
+				"public/template",
+				"Vargulf/.cabal-sandbox",
+				"Vargulf/yesod-devel"
 			],
 			"follow_symlinks": true,
 			"path": "."
