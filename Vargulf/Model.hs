@@ -4,6 +4,8 @@ import Prelude
 import Yesod
 import Data.Text (Text)
 import Database.Persist.Quasi
+{-# LANGUAGE RecordWildCards   #-}
+
 import Database.Persist.MongoDB hiding (master)
 import Language.Haskell.TH.Syntax
 import Data.Typeable (Typeable)
